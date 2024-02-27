@@ -8,6 +8,39 @@ using namespace uavos;
 using namespace uavos::comm;
 bool exit_me = false;
 
+#define MESSAGE_FILTER {TYPE_AndruavMessage_RemoteExecute,\
+                        TYPE_AndruavMessage_FlightControl,\
+                        TYPE_AndruavMessage_GeoFence,\
+                        TYPE_AndruavMessage_ExternalGeoFence,\
+                        TYPE_AndruavMessage_Arm,\
+                        TYPE_AndruavMessage_ChangeAltitude,\
+                        TYPE_AndruavMessage_Land,\
+                        TYPE_AndruavMessage_GuidedPoint,\
+                        TYPE_AndruavMessage_CirclePoint,\
+                        TYPE_AndruavMessage_DoYAW,\
+                        TYPE_AndruavMessage_DistinationLocation, \
+                        TYPE_AndruavMessage_ChangeSpeed, \
+                        TYPE_AndruavMessage_TrackingTarget, \
+                        TYPE_AndruavMessage_TrackingTargetLocation, \
+                        TYPE_AndruavMessage_TargetLost, \
+                        TYPE_AndruavMessage_UploadWayPoints, \
+                        TYPE_AndruavMessage_RemoteControlSettings, \
+                        TYPE_AndruavMessage_SET_HOME_LOCATION, \
+                        TYPE_AndruavMessage_RemoteControl2, \
+                        TYPE_AndruavMessage_LightTelemetry, \
+                        TYPE_AndruavMessage_ServoChannel, \
+                        TYPE_AndruavMessage_Sync_EventFire, \
+                        TYPE_AndruavMessage_MAVLINK, \
+                        TYPE_AndruavMessage_SWARM_MAVLINK, \
+                        TYPE_AndruavMessage_MAKE_SWARM,  \
+                        TYPE_AndruavMessage_FollowHim_Request,  \
+                        TYPE_AndruavMessage_FollowMe_Guided, \
+                        TYPE_AndruavMessage_UpdateSwarm, \
+                        TYPE_AndruavMessage_UDPProxy_Info, \
+                        TYPE_AndruavSystem_UdpProxy, \
+                        TYPE_AndruavMessage_P2P_ACTION, \
+                        TYPE_AndruavMessage_P2P_STATUS}
+
 CMODULE cModule;
 
 
@@ -16,20 +49,23 @@ int main (int argc, char *argv[])
 
     std::cout << _INFO_CONSOLE_TEXT << "HELLO " << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
+    // Define a Module
     cModule.defineModule(
         MODULE_CLASS_FCB,
         "Module ID",
         "Module Key",
-        "Module Version"
+        "Module Version" //,
+        //Json::array(MESSAGE_FILTER)
     );
-    cModule.addModuleFeatures("T");
-    cModule.addModuleFeatures("R");
+    cModule.addModuleFeatures(MODULE_FEATURE_SENDING_TELEMETRY);
+    cModule.addModuleFeatures(MODULE_FEATURE_RECEIVING_TELEMETRY);
+    
     cModule.setHardware("123456", ENUM_HARDWARE_TYPE::HARDWARE_TYPE_CPU);
     
-    cModule.init("127.0.0.1",60000,"127.0.0.1",60003);
+    cModule.init("0.0.0.0",60000,"0.0.0.0",60003);
     const Json jsonID = cModule.createJSONID(true);
 
-    std::cout << _INFO_CONSOLE_TEXT << "JSON" << jsonID.dump() << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    //std::cout << _INFO_CONSOLE_TEXT << "JSON" << jsonID.dump() << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
 
     while (!exit_me)
@@ -38,4 +74,9 @@ int main (int argc, char *argv[])
        
     }
 
+
+    #ifdef DEBUG
+	        std::cout << "EXIT " << std::endl; 
+    #endif
+    
 }

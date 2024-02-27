@@ -16,6 +16,9 @@ typedef enum {
 } ENUM_HARDWARE_TYPE;
 
 
+#define MODULE_FEATURE_RECEIVING_TELEMETRY      "R"
+#define MODULE_FEATURE_SENDING_TELEMETRY        "T"
+
 #define MODULE_CLASS_FCB    "fcb"
 #define MODULE_CLASS_VIDEO  "camera"
 
@@ -49,10 +52,11 @@ namespace comm
         public:
 
             void defineModule (
-                const std::string module_class,
-                const std::string module_id,
-                const std::string module_key,
-                const std::string module_version
+                 std::string module_class,
+                 std::string module_id,
+                 std::string module_key,
+                 std::string module_version //,
+                 // Json message_filter
             );
             
             bool init (const std::string targetIP, int broadcatsPort, const std::string host, int listenningPort);
@@ -211,6 +215,7 @@ namespace comm
             // UAVOS Current m_group_id read from communicator
             std::string  m_group_id;
             
+            Json m_message_filter;
     };
 };
 };

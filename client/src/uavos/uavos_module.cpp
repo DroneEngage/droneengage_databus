@@ -2,38 +2,7 @@
 #include "uavos_module.hpp"
 
 
-#define MESSAGE_FILTER {TYPE_AndruavMessage_RemoteExecute,\
-                        TYPE_AndruavMessage_FlightControl,\
-                        TYPE_AndruavMessage_GeoFence,\
-                        TYPE_AndruavMessage_ExternalGeoFence,\
-                        TYPE_AndruavMessage_Arm,\
-                        TYPE_AndruavMessage_ChangeAltitude,\
-                        TYPE_AndruavMessage_Land,\
-                        TYPE_AndruavMessage_GuidedPoint,\
-                        TYPE_AndruavMessage_CirclePoint,\
-                        TYPE_AndruavMessage_DoYAW,\
-                        TYPE_AndruavMessage_DistinationLocation, \
-                        TYPE_AndruavMessage_ChangeSpeed, \
-                        TYPE_AndruavMessage_TrackingTarget, \
-                        TYPE_AndruavMessage_TrackingTargetLocation, \
-                        TYPE_AndruavMessage_TargetLost, \
-                        TYPE_AndruavMessage_UploadWayPoints, \
-                        TYPE_AndruavMessage_RemoteControlSettings, \
-                        TYPE_AndruavMessage_SET_HOME_LOCATION, \
-                        TYPE_AndruavMessage_RemoteControl2, \
-                        TYPE_AndruavMessage_LightTelemetry, \
-                        TYPE_AndruavMessage_ServoChannel, \
-                        TYPE_AndruavMessage_Sync_EventFire, \
-                        TYPE_AndruavMessage_MAVLINK, \
-                        TYPE_AndruavMessage_SWARM_MAVLINK, \
-                        TYPE_AndruavMessage_MAKE_SWARM,  \
-                        TYPE_AndruavMessage_FollowHim_Request,  \
-                        TYPE_AndruavMessage_FollowMe_Guided, \
-                        TYPE_AndruavMessage_UpdateSwarm, \
-                        TYPE_AndruavMessage_UDPProxy_Info, \
-                        TYPE_AndruavSystem_UdpProxy, \
-                        TYPE_AndruavMessage_P2P_ACTION, \
-                        TYPE_AndruavMessage_P2P_STATUS}
+
 
 
 
@@ -45,17 +14,18 @@ uavos::comm::CMODULE::CMODULE()
 }
 
 void uavos::comm::CMODULE::defineModule (
-                const std::string module_class,
-                const std::string module_id,
-                const std::string module_key,
-                const std::string module_version
+                 std::string module_class,
+                 std::string module_id,
+                 std::string module_key,
+                 std::string module_version //,
+                //Json message_filter
             ) 
 {
     m_module_class = module_class;
     m_module_id = module_id;
     m_module_key = module_key;
     m_module_version = module_version;
-
+    // m_message_filter = message_filter;
     return ;
 }
 
@@ -65,10 +35,10 @@ bool uavos::comm::CMODULE::init (const std::string targetIP, int broadcatsPort, 
     // UDP Server
     cUDPClient.init(targetIP.c_str(), broadcatsPort, host.c_str() ,listenningPort);
     
-    Json jsonID = createJSONID(true);
-    cUDPClient.setJsonId (jsonID.dump());
-    cUDPClient.setMessageOnReceive (this);
-    cUDPClient.start();
+    // Json jsonID = createJSONID(true);
+    // cUDPClient.setJsonId (jsonID.dump());
+    // cUDPClient.setMessageOnReceive (this);
+    // cUDPClient.start();
 }
             
 void uavos::comm::CMODULE::onReceive (const char * message, int len)
@@ -149,7 +119,7 @@ const Json uavos::comm::CMODULE::createJSONID (bool reSend)
               
         ms[JSON_INTERMODULE_MODULE_ID]              = m_module_id;
         ms[JSON_INTERMODULE_MODULE_CLASS]           = m_module_class;
-        ms[JSON_INTERMODULE_MODULE_MESSAGES_LIST]   = Json::array(MESSAGE_FILTER);
+        ms[JSON_INTERMODULE_MODULE_MESSAGES_LIST]   = m_message_filter;
         ms[JSON_INTERMODULE_MODULE_FEATURES]        = m_module_features;
         ms[JSON_INTERMODULE_MODULE_KEY]             = m_module_key; 
         ms[JSON_INTERMODULE_HARDWARE_ID]            = m_hardware_serial; 
