@@ -37,8 +37,9 @@ class CUDPClient
 
     public:
 
-        CUDPClient()
+        CUDPClient(CCallBack_UDPClient * callback)
         {
+            m_callback = callback;
         }
 
     public:
@@ -49,7 +50,6 @@ class CUDPClient
         void start();
         void stop();
         void setJsonId (std::string jsonID);
-        void setMessageOnReceive (CCallBack_UDPClient* callback);
         void sendMSG(const char * msg, const int length);
 
         bool isStarted() const { return m_starrted;}
@@ -69,7 +69,7 @@ class CUDPClient
         pthread_t m_thread;
 
         std::string m_JsonID;
-        CCallBack_UDPClient* m_OnReceive  = nullptr;
+        CCallBack_UDPClient* m_callback  = nullptr;
 
     protected:
         bool m_starrted = false;

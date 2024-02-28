@@ -41,7 +41,7 @@ bool exit_me = false;
                         TYPE_AndruavMessage_P2P_ACTION, \
                         TYPE_AndruavMessage_P2P_STATUS}
 
-CMODULE cModule;
+CMODULE &cModule = CMODULE::getInstance();
 
 
 int main (int argc, char *argv[])
@@ -51,18 +51,18 @@ int main (int argc, char *argv[])
 
     // Define a Module
     cModule.defineModule(
-        MODULE_CLASS_FCB,
-        "Module ID",
-        "Module Key",
-        "Module Version" //,
-        //Json::array(MESSAGE_FILTER)
+        MODULE_CLASS_GENERIC,
+        "CESCA Module",
+        "e27e099d91de",
+        "0.0.1",
+        Json::array(MESSAGE_FILTER)
     );
     cModule.addModuleFeatures(MODULE_FEATURE_SENDING_TELEMETRY);
     cModule.addModuleFeatures(MODULE_FEATURE_RECEIVING_TELEMETRY);
     
     cModule.setHardware("123456", ENUM_HARDWARE_TYPE::HARDWARE_TYPE_CPU);
     
-    cModule.init("0.0.0.0",60000,"0.0.0.0",60003);
+    cModule.init("0.0.0.0",60000,"0.0.0.0",60013);
     const Json jsonID = cModule.createJSONID(true);
 
     //std::cout << _INFO_CONSOLE_TEXT << "JSON" << jsonID.dump() << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -71,7 +71,7 @@ int main (int argc, char *argv[])
     while (!exit_me)
     {
        std::this_thread::sleep_for(std::chrono::seconds(1));
-       
+       std::cout << "RUNNING " << std::endl; 
     }
 
 

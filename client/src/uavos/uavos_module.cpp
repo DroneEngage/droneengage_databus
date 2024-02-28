@@ -6,19 +6,13 @@
 
 
 
-uavos::comm::CMODULE::CMODULE()
-{
-    m_instance_time_stamp = std::time(nullptr);
-    m_hardware_serial = "";
-    m_hardware_serial_type = HARDWARE_TYPE_UNDEFINED;
-}
 
 void uavos::comm::CMODULE::defineModule (
                  std::string module_class,
                  std::string module_id,
                  std::string module_key,
-                 std::string module_version //,
-                //Json message_filter
+                 std::string module_version,
+                 Json message_filter
             ) 
 {
     m_module_class = module_class;
@@ -35,10 +29,11 @@ bool uavos::comm::CMODULE::init (const std::string targetIP, int broadcatsPort, 
     // UDP Server
     cUDPClient.init(targetIP.c_str(), broadcatsPort, host.c_str() ,listenningPort);
     
-    // Json jsonID = createJSONID(true);
-    // cUDPClient.setJsonId (jsonID.dump());
-    // cUDPClient.setMessageOnReceive (this);
-    // cUDPClient.start();
+    Json jsonID = createJSONID(true);
+    cUDPClient.setJsonId (jsonID.dump());
+    cUDPClient.start();
+
+    return true;
 }
             
 void uavos::comm::CMODULE::onReceive (const char * message, int len)
@@ -109,7 +104,7 @@ void uavos::comm::CMODULE::onReceive (const char * message, int len)
     }
 }
 
-const Json uavos::comm::CMODULE::createJSONID (bool reSend)
+Json uavos::comm::CMODULE::createJSONID (bool reSend) const
 {
         Json json_msg;        
         
@@ -130,7 +125,7 @@ const Json uavos::comm::CMODULE::createJSONID (bool reSend)
 
         json_msg[ANDRUAV_PROTOCOL_MESSAGE_CMD] = ms;
         #ifdef DEBUG
-            std::cout << json_msg.dump(4) << std::endl;              
+            //std::cout << json_msg.dump(4) << std::endl;              
         #endif
         return json_msg;
 }

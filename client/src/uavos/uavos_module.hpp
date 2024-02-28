@@ -19,8 +19,9 @@ typedef enum {
 #define MODULE_FEATURE_RECEIVING_TELEMETRY      "R"
 #define MODULE_FEATURE_SENDING_TELEMETRY        "T"
 
-#define MODULE_CLASS_FCB    "fcb"
-#define MODULE_CLASS_VIDEO  "camera"
+#define MODULE_CLASS_FCB        "fcb"
+#define MODULE_CLASS_VIDEO      "camera"
+#define MODULE_CLASS_GENERIC    "gen"
 
 
 typedef void (*SEND_SYSMSG_CALLBACK)(const Json&, const int& );
@@ -47,16 +48,34 @@ namespace comm
     {
         public:
 
-            CMODULE();
+            static CMODULE& getInstance()
+            {
+                static CMODULE instance;
 
+                return instance;
+            }
+
+            CMODULE(CMODULE const&)               = delete;
+            void operator=(CMODULE const&)        = delete;
+
+        private:
+
+            CMODULE(): cUDPClient(this)
+            {
+                m_instance_time_stamp = std::time(nullptr);
+                m_hardware_serial = "";
+                m_hardware_serial_type = HARDWARE_TYPE_UNDEFINED;
+
+            }
+        
         public:
 
             void defineModule (
                  std::string module_class,
                  std::string module_id,
                  std::string module_key,
-                 std::string module_version //,
-                 // Json message_filter
+                 std::string module_version,
+                 Json message_filter
             );
             
             bool init (const std::string targetIP, int broadcatsPort, const std::string host, int listenningPort);
@@ -72,7 +91,7 @@ namespace comm
         public:
 
 
-            const Json createJSONID (bool reSend);
+            Json createJSONID (bool reSend) const;
 
 
             /**
@@ -208,7 +227,7 @@ namespace comm
 
             std::time_t m_instance_time_stamp;
     
-            CUDPClient cUDPClient = uavos::comm::CUDPClient(); 
+            CUDPClient cUDPClient; 
 
             // UAVOS Current m_party_id read from communicator
             std::string  m_party_id;

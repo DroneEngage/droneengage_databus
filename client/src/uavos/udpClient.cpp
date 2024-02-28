@@ -195,9 +195,9 @@ void uavos::comm::CUDPClient::InternalReceiverEntry()
         if (n > 0) 
         {
             buffer[n]=0;
-            if (m_OnReceive != NULL)
+            if (m_callback != NULL)
             {
-                m_OnReceive->onReceive((const char *) buffer,n);
+                m_callback->onReceive((const char *) buffer,n);
             } 
         }
     }
@@ -216,11 +216,6 @@ void uavos::comm::CUDPClient::InternalReceiverEntry()
 void uavos::comm::CUDPClient::setJsonId (std::string jsonID)
 {
     m_JsonID = jsonID;
-}
-
-void uavos::comm::CUDPClient::setMessageOnReceive (CCallBack_UDPClient* callback)
-{
-    m_OnReceive = callback;
 }
 
 /**
