@@ -19,9 +19,9 @@ typedef enum {
 #define MODULE_FEATURE_RECEIVING_TELEMETRY      "R"
 #define MODULE_FEATURE_SENDING_TELEMETRY        "T"
 
-#define MODULE_CLASS_FCB        "fcb"
-#define MODULE_CLASS_VIDEO      "camera"
-#define MODULE_CLASS_GENERIC    "gen"
+#define MODULE_CLASS_FCB                        "fcb"
+#define MODULE_CLASS_VIDEO                      "camera"
+#define MODULE_CLASS_GENERIC                    "gen"
 
 
 typedef void (*SEND_SYSMSG_CALLBACK)(const Json&, const int& );
@@ -44,23 +44,23 @@ namespace uavos
 
 namespace comm
 {
-    class CMODULE : public CCallBack_UDPClient
+    class CModule : public CCallBack_UDPClient
     {
         public:
 
-            // static CMODULE& getInstance()
-            // {
-            //     static CMODULE instance;
+            static CModule& getInstance()
+            {
+                static CModule instance;
 
-            //     return instance;
-            // }
+                return instance;
+            }
 
-            //CMODULE(CMODULE const&)               = delete;
-            //void operator=(CMODULE const&)        = delete;
+            CModule(CModule const&)               = delete;
+            void operator=(CModule const&)        = delete;
 
-        //private:
+        private:
 
-            CMODULE(): cUDPClient(this)
+            CModule(): cUDPClient(this)
             {
                 m_instance_time_stamp = std::time(nullptr);
                 m_hardware_serial = "";
@@ -79,18 +79,40 @@ namespace comm
             );
             
             bool init (const std::string targetIP, int broadcatsPort, const std::string host, int listenningPort);
-            bool uninit () {};
+            bool uninit ();
             
 
 
 
         public:
+                void setMessageOnReceive (void (*onReceive)(const char *, int len))
+                {
+                    m_OnReceive = onReceive;
+                }
+        
+                void sendMSG (const char * msg, const int length)
+                {
+                    cUDPClient.sendMSG (msg, length);
+                }
 
-                void onReceive (const char *, int len);
 
+                void onReceive (const char *, int len) override;
         public:
 
-
+            /**
+             * @brief creates JSON message that identifies Module
+             * @details generates JSON message that identifies module
+             * 'a': module_id
+             * 'b': module_class. fixed "fcb"
+             * 'c': module_messages. can be updated from config file.
+             * 'd': module_features. fixed per module. [T,R]
+             * 'e': module_key. uniqueley identifies this instance and can be set in config file.
+             * 's': hardware_serial. 
+             * 't': hardware_type. 
+             * 'z': resend request flag
+             * @param reSend if true then server should reply with server json_msg
+             * @return const Json 
+             */
             Json createJSONID (bool reSend) const;
 
 
@@ -183,6 +205,17 @@ namespace comm
             }
 
 
+            inline const std::string getGroupId() const 
+            {
+                return m_group_id;
+            }
+
+
+            inline const std::string getPartyId() const 
+            {
+                return m_party_id;
+            }
+
         protected:
 
             /**
@@ -229,12 +262,21 @@ namespace comm
     
             CUDPClient cUDPClient; 
 
-            // UAVOS Current m_party_id read from communicator
+            /**
+             * @brief UAVOS Current m_party_id read from communicator
+             * This is important communication part to identify myself and other senders.
+             */
             std::string  m_party_id;
-            // UAVOS Current m_group_id read from communicator
+            /**
+             * @brief UAVOS Current m_group_id read from communicator
+             * This is important communication part to identify myself and other senders.
+             */
             std::string  m_group_id;
             
             Json m_message_filter;
+
+            void (*m_OnReceive)(const char *, int len) = nullptr;
+
     };
 };
 };

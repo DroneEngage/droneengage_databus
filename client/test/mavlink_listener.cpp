@@ -1,7 +1,7 @@
 
 
 #include "../src/helpers/colors.hpp"
-#include "../src/uavos/uavos_module.hpp"
+#include "../src/uavos_common/uavos_module.hpp"
 
 
 
@@ -43,7 +43,7 @@ bool exit_me = false;
                         TYPE_AndruavMessage_P2P_ACTION, \
                         TYPE_AndruavMessage_P2P_STATUS}
 
-CMODULE cModule; 
+CModule& cModule= CModule::getInstance(); 
 
 
 int main (int argc, char *argv[])

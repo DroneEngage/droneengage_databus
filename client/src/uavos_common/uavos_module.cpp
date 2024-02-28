@@ -7,7 +7,7 @@
 
 
 
-void uavos::comm::CMODULE::defineModule (
+void uavos::comm::CModule::defineModule (
                  std::string module_class,
                  std::string module_id,
                  std::string module_key,
@@ -24,7 +24,7 @@ void uavos::comm::CMODULE::defineModule (
 }
 
 
-bool uavos::comm::CMODULE::init (const std::string targetIP, int broadcatsPort, const std::string host, int listenningPort)
+bool uavos::comm::CModule::init (const std::string targetIP, int broadcatsPort, const std::string host, int listenningPort)
 {
     // UDP Server
     cUDPClient.init(targetIP.c_str(), broadcatsPort, host.c_str() ,listenningPort);
@@ -35,8 +35,15 @@ bool uavos::comm::CMODULE::init (const std::string targetIP, int broadcatsPort, 
 
     return true;
 }
-            
-void uavos::comm::CMODULE::onReceive (const char * message, int len)
+
+
+bool uavos::comm::CModule::uninit ()
+{
+    cUDPClient.stop();
+}
+
+           
+void uavos::comm::CModule::onReceive (const char * message, int len)
 {
     static bool bFirstReceived = false;
         
@@ -60,31 +67,25 @@ void uavos::comm::CMODULE::onReceive (const char * message, int len)
                 const Json moduleID = cmd ["f"];
                 m_party_id = std::string(moduleID[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
                 m_group_id = std::string(moduleID[ANDRUAV_PROTOCOL_GROUP_ID].get<std::string>());
-                //cFCBMain.setPartyID(m_party_id, m_group_id);
                 
-                const int status = cmd ["g"].get<int>();
-                // if (AndruavServerConnectionStatus != status)
-                // {
-                //     _onConnectionStatusChanged (status);
-                // }
-                //AndruavServerConnectionStatus = status;
                 if (!bFirstReceived)
                 { 
                     // tell server you dont need to send ID again.
                     std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << " ** Communicator Server Found" << _SUCCESS_CONSOLE_TEXT_ << ": m_party_id(" << _INFO_CONSOLE_TEXT << m_party_id << _SUCCESS_CONSOLE_TEXT_ << ") m_group_id(" << _INFO_CONSOLE_TEXT << m_group_id << _SUCCESS_CONSOLE_TEXT_ << ")" <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
-                    //PLOG(plog::info) << "Communicator Server Found: m_party_id(" << m_party_id << ") m_group_id(" << m_group_id << ")"; 
                     Json jsonID = createJSONID(false);
                     cUDPClient.setJsonId (jsonID.dump());
                     bFirstReceived = true;
                 }
+                
+                if (m_OnReceive!= nullptr) m_OnReceive(message, len);
+
                 return ;
             }
 
             
         }
 
-        // cAndruavResalaParser.parseMessage(jMsg, message, len);
-    
+        if (m_OnReceive!= nullptr) m_OnReceive(message, len);
     }
     catch(const std::exception& e)
     {
@@ -92,7 +93,21 @@ void uavos::comm::CMODULE::onReceive (const char * message, int len)
     }
 }
 
-Json uavos::comm::CMODULE::createJSONID (bool reSend) const
+/**
+ * @brief creates JSON message that identifies Module
+ * @details generates JSON message that identifies module
+ * 'a': module_id
+ * 'b': module_class. fixed "fcb"
+ * 'c': module_messages. can be updated from config file.
+ * 'd': module_features. fixed per module. [T,R]
+ * 'e': module_key. uniqueley identifies this instance and can be set in config file.
+ * 's': hardware_serial. 
+ * 't': hardware_type. 
+ * 'z': resend request flag
+ * @param reSend if true then server should reply with server json_msg
+ * @return const Json 
+ */
+Json uavos::comm::CModule::createJSONID (bool reSend) const
 {
         Json json_msg;        
         

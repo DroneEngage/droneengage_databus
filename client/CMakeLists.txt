@@ -82,7 +82,7 @@ SET(OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 file(MAKE_DIRECTORY ${OUTPUT_DIRECTORY})
 
 file(GLOB main "./src/*.cpp")
-file(GLOB uavos "./src/uavos/*.cpp")
+file(GLOB uavos "./src/uavos_common/*.cpp")
 file(GLOB folder_helpers "./src/helpers/*.cpp")
 
 set(files ${main} ${uavos} ${folder_helpers})

@@ -1,6 +1,6 @@
 
 #include "./helpers/colors.hpp"
-#include "./uavos/uavos_module.hpp"
+#include "./uavos_common/uavos_module.hpp"
 
 
 
@@ -41,9 +41,17 @@ bool exit_me = false;
                         TYPE_AndruavMessage_P2P_ACTION, \
                         TYPE_AndruavMessage_P2P_STATUS}
 
-CMODULE cModule; //CMODULE::getInstance();
-CMODULE cModule2; //CMODULE::getInstance();
+CModule& cModule= CModule::getInstance();
 
+
+void onReceive (const char * message, int len)
+{
+    #ifdef DEBUG        
+        std::cout << _LOG_CONSOLE_TEXT << "RX MSG: :len " << std::to_string(len) << ":" << message <<   _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
+    
+    
+}
 
 int main (int argc, char *argv[])
 {
@@ -62,21 +70,9 @@ int main (int argc, char *argv[])
     cModule.addModuleFeatures(MODULE_FEATURE_RECEIVING_TELEMETRY);
     
     cModule.setHardware("123456", ENUM_HARDWARE_TYPE::HARDWARE_TYPE_CPU);
+    cModule.setMessageOnReceive (&onReceive);
     
     cModule.init("0.0.0.0",60000,"0.0.0.0",60013);
-    
-
-    cModule2.defineModule(
-        MODULE_CLASS_GENERIC,
-        "My-MODULE Module2",
-        "F27e099d91de",
-        "0.0.2",
-        Json::array()
-    );
-    cModule2.addModuleFeatures(MODULE_FEATURE_SENDING_TELEMETRY);
-    cModule2.addModuleFeatures(MODULE_FEATURE_RECEIVING_TELEMETRY);
-    
-    cModule2.init("0.0.0.0",60000,"0.0.0.0",60014);
     
 
     while (!exit_me)
