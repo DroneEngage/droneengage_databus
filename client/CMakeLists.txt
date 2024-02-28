@@ -87,6 +87,20 @@ file(GLOB folder_helpers "./src/helpers/*.cpp")
 
 set(files ${main} ${uavos} ${folder_helpers})
 
+file(GLOB test_sources "./test/*.cpp")
+
+set(testfiles ${test_sources} ${uavos} ${folder_helpers})
+
+
+foreach(test_source ${test_sources})
+    get_filename_component(test_name ${test_source} NAME_WE)
+    add_executable(${test_name} ${test_source} ${uavos} ${folder_helpers})
+    
+    set_target_properties(${test_name} PROPERTIES OUTPUT_NAME "${test_name}")
+    set_target_properties(${test_name} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_DIRECTORY})
+    
+endforeach()
+
 
 #Create a static library
 # add_library(OUTPUT_BINARY STATIC ${files})

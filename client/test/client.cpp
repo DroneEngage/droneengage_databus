@@ -1,6 +1,10 @@
+#include <iostream>
+#include <string>
+#include <random>
 
-#include "./helpers/colors.hpp"
-#include "./uavos/uavos_module.hpp"
+#include "../src/helpers/colors.hpp"
+#include "../src/uavos/uavos_module.hpp"
+
 
 
 
@@ -41,48 +45,62 @@ bool exit_me = false;
                         TYPE_AndruavMessage_P2P_ACTION, \
                         TYPE_AndruavMessage_P2P_STATUS}
 
-CMODULE cModule; //CMODULE::getInstance();
-CMODULE cModule2; //CMODULE::getInstance();
+CMODULE cModule; 
+
+std::string generateRandomModuleID() {
+    std::random_device rd;
+    std::mt19937 generator(rd());
+    std::uniform_int_distribution<char> distribution('0', '9');
+    
+    std::string moduleID;
+    for (int i = 0; i < 12; ++i) {
+        moduleID += distribution(generator);
+    }
+    
+    return moduleID;
+}
 
 
 int main (int argc, char *argv[])
 {
 
+    if (argc < 4) {
+        std::cerr << "Insufficient arguments. Usage: app module_name listen_port(60003) broker_port(60000)" << std::endl;
+        return 1;
+    }
+    
+    std::string module_name = argv[1];
+    int listen_port = std::stoi(argv[2]);
+    int target_port = std::stoi(argv[3]);
+
+    std::string module_id = generateRandomModuleID();
+    
     std::cout << _INFO_CONSOLE_TEXT << "HELLO " << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
     // Define a Module
     cModule.defineModule(
         MODULE_CLASS_GENERIC,
-        "My-MODULE Module",
-        "e27e099d91de",
+        module_name,
+        module_id,
         "0.0.1",
-        Json::array(MESSAGE_FILTER)
+        Json::array()  // WAITING FOR NO MESSAGES
     );
+
+    // Add feature this module supports. [OPTIONAL]
     cModule.addModuleFeatures(MODULE_FEATURE_SENDING_TELEMETRY);
     cModule.addModuleFeatures(MODULE_FEATURE_RECEIVING_TELEMETRY);
     
+    // Add Hardware Verification Info to be verified by server. [OPTIONAL]
     cModule.setHardware("123456", ENUM_HARDWARE_TYPE::HARDWARE_TYPE_CPU);
     
-    cModule.init("0.0.0.0",60000,"0.0.0.0",60013);
+    cModule.init("0.0.0.0",target_port, "0.0.0.0", listen_port);
     
-
-    cModule2.defineModule(
-        MODULE_CLASS_GENERIC,
-        "My-MODULE Module2",
-        "F27e099d91de",
-        "0.0.2",
-        Json::array()
-    );
-    cModule2.addModuleFeatures(MODULE_FEATURE_SENDING_TELEMETRY);
-    cModule2.addModuleFeatures(MODULE_FEATURE_RECEIVING_TELEMETRY);
+    std::cout << "CLIENT RUNNING " << std::endl; 
     
-    cModule2.init("0.0.0.0",60000,"0.0.0.0",60014);
-    
-
     while (!exit_me)
     {
        std::this_thread::sleep_for(std::chrono::seconds(1));
-       std::cout << "RUNNING " << std::endl; 
+       std::cout << "CLIENT RUNNING " << std::endl; 
     }
 
 

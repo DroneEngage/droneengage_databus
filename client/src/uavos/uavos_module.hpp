@@ -48,17 +48,17 @@ namespace comm
     {
         public:
 
-            static CMODULE& getInstance()
-            {
-                static CMODULE instance;
+            // static CMODULE& getInstance()
+            // {
+            //     static CMODULE instance;
 
-                return instance;
-            }
+            //     return instance;
+            // }
 
-            CMODULE(CMODULE const&)               = delete;
-            void operator=(CMODULE const&)        = delete;
+            //CMODULE(CMODULE const&)               = delete;
+            //void operator=(CMODULE const&)        = delete;
 
-        private:
+        //private:
 
             CMODULE(): cUDPClient(this)
             {

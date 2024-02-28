@@ -19,7 +19,7 @@ void uavos::comm::CMODULE::defineModule (
     m_module_id = module_id;
     m_module_key = module_key;
     m_module_version = module_version;
-    // m_message_filter = message_filter;
+    m_message_filter = message_filter;
     return ;
 }
 
@@ -83,19 +83,7 @@ void uavos::comm::CMODULE::onReceive (const char * message, int len)
             
         }
 
-        // /*
-        // * Handles SWARM MESSAGE
-        // * P2P Message SHOULD BE ENCAPSULATED
-        // */
-        // if (messageType == TYPE_AndruavMessage_SWARM_MAVLINK)
-        //     {
-        //         const std::string leader_sender = jMsg[ANDRUAV_PROTOCOL_SENDER].get<std::string>();
-        //         uavos::fcb::swarm::CSwarmFollower& swarm_follower = uavos::fcb::swarm::CSwarmFollower::getInstance();
-        //         swarm_follower.handle_leader_traffic(leader_sender, message, len);
-            
-        //         return ;
-        //     }
-        //cAndruavResalaParser.parseMessage(jMsg, message, len);
+        // cAndruavResalaParser.parseMessage(jMsg, message, len);
     
     }
     catch(const std::exception& e)

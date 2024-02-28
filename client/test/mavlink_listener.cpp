@@ -1,6 +1,8 @@
 
-#include "./helpers/colors.hpp"
-#include "./uavos/uavos_module.hpp"
+
+#include "../src/helpers/colors.hpp"
+#include "../src/uavos/uavos_module.hpp"
+
 
 
 
@@ -41,8 +43,7 @@ bool exit_me = false;
                         TYPE_AndruavMessage_P2P_ACTION, \
                         TYPE_AndruavMessage_P2P_STATUS}
 
-CMODULE cModule; //CMODULE::getInstance();
-CMODULE cModule2; //CMODULE::getInstance();
+CMODULE cModule; 
 
 
 int main (int argc, char *argv[])
@@ -53,31 +54,18 @@ int main (int argc, char *argv[])
     // Define a Module
     cModule.defineModule(
         MODULE_CLASS_GENERIC,
-        "My-MODULE Module",
-        "e27e099d91de",
+        "MAV-LST",
+        "mav27e099d91de",
         "0.0.1",
         Json::array(MESSAGE_FILTER)
     );
+
     cModule.addModuleFeatures(MODULE_FEATURE_SENDING_TELEMETRY);
     cModule.addModuleFeatures(MODULE_FEATURE_RECEIVING_TELEMETRY);
     
     cModule.setHardware("123456", ENUM_HARDWARE_TYPE::HARDWARE_TYPE_CPU);
     
-    cModule.init("0.0.0.0",60000,"0.0.0.0",60013);
-    
-
-    cModule2.defineModule(
-        MODULE_CLASS_GENERIC,
-        "My-MODULE Module2",
-        "F27e099d91de",
-        "0.0.2",
-        Json::array()
-    );
-    cModule2.addModuleFeatures(MODULE_FEATURE_SENDING_TELEMETRY);
-    cModule2.addModuleFeatures(MODULE_FEATURE_RECEIVING_TELEMETRY);
-    
-    cModule2.init("0.0.0.0",60000,"0.0.0.0",60014);
-    
+    cModule.init("0.0.0.0",60000,"0.0.0.0",70014);
 
     while (!exit_me)
     {
