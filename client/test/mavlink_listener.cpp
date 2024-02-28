@@ -45,6 +45,14 @@ bool exit_me = false;
 
 CModule& cModule= CModule::getInstance(); 
 
+void onReceive (const char * message, int len)
+{
+    #ifdef DEBUG        
+        std::cout << _LOG_CONSOLE_TEXT << "RX MSG: :len " << std::to_string(len) << ":" << message <<   _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
+    
+    
+}
 
 int main (int argc, char *argv[])
 {
@@ -64,6 +72,7 @@ int main (int argc, char *argv[])
     cModule.addModuleFeatures(MODULE_FEATURE_RECEIVING_TELEMETRY);
     
     cModule.setHardware("123456", ENUM_HARDWARE_TYPE::HARDWARE_TYPE_CPU);
+    cModule.setMessageOnReceive (&onReceive);
     
     cModule.init("0.0.0.0",60000,"0.0.0.0",70014);
 
