@@ -1,0 +1,1 @@
+/usr/bin/g++ -g -rdynamic CMakeFiles/mavlink_listener.dir/test/mavlink_listener.cpp.o CMakeFiles/mavlink_listener.dir/src/uavos_common/uavos_module.cpp.o CMakeFiles/mavlink_listener.dir/src/uavos_common/udpClient.cpp.o CMakeFiles/mavlink_listener.dir/src/helpers/getopt_cpp.cpp.o CMakeFiles/mavlink_listener.dir/src/helpers/helpers.cpp.o -o ../bin/mavlink_listener 

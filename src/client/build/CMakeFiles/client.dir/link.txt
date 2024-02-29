@@ -1,0 +1,1 @@
+/usr/bin/g++ -g -rdynamic CMakeFiles/client.dir/test/client.cpp.o CMakeFiles/client.dir/src/uavos_common/uavos_module.cpp.o CMakeFiles/client.dir/src/uavos_common/udpClient.cpp.o CMakeFiles/client.dir/src/helpers/getopt_cpp.cpp.o CMakeFiles/client.dir/src/helpers/helpers.cpp.o -o ../bin/client 
