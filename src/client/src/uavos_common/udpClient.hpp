@@ -34,6 +34,8 @@ class CUDPClient
         
         ~CUDPClient ();
         
+    public:
+    
         void init(const char * targetIP, int broadcatsPort, const char * host, int listenningPort);
         void start();
         void stop();
