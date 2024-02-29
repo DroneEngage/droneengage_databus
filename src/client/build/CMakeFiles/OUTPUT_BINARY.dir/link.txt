@@ -1,1 +1,0 @@
-/usr/bin/g++ -g -rdynamic CMakeFiles/OUTPUT_BINARY.dir/src/main.cpp.o CMakeFiles/OUTPUT_BINARY.dir/src/uavos_common/uavos_module.cpp.o CMakeFiles/OUTPUT_BINARY.dir/src/uavos_common/udpClient.cpp.o CMakeFiles/OUTPUT_BINARY.dir/src/helpers/getopt_cpp.cpp.o CMakeFiles/OUTPUT_BINARY.dir/src/helpers/helpers.cpp.o -o droneengage_client_bus.so 

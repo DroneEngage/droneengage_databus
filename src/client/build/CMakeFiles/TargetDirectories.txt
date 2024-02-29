@@ -1,5 +1,0 @@
-/home/mhefny/DroneEngage/droneengage_databus/src/client/build/CMakeFiles/client.dir
-/home/mhefny/DroneEngage/droneengage_databus/src/client/build/CMakeFiles/mavlink_listener.dir
-/home/mhefny/DroneEngage/droneengage_databus/src/client/build/CMakeFiles/OUTPUT_BINARY.dir
-/home/mhefny/DroneEngage/droneengage_databus/src/client/build/CMakeFiles/edit_cache.dir
-/home/mhefny/DroneEngage/droneengage_databus/src/client/build/CMakeFiles/rebuild_cache.dir
