@@ -130,12 +130,12 @@ namespace comm
              * in this case we use T & R only. 
              * @return const Json 
              */
-             inline const Json getModuleFeatures() const
+            inline const Json getModuleFeatures() const
             {
                 return m_module_features;
             }
 
-             inline void addModuleFeatures(const std::string feature)
+            inline void addModuleFeatures(const std::string feature)
             {
                 m_module_features.push_back(feature);
             }
