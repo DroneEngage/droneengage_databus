@@ -34,8 +34,6 @@ class CUDPClient
         
         ~CUDPClient ();
         
-    public:
-    
         void init(const char * targetIP, int broadcatsPort, const char * host, int listenningPort);
         void start();
         void stop();
@@ -65,6 +63,7 @@ class CUDPClient
         bool m_starrted = false;
         bool m_stopped_called = false;
         std::mutex m_lock;  
+        std::mutex m_lock2;  
  
         char buffer[MAXLINE]; 
 
