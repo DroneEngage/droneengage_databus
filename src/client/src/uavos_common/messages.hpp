@@ -203,6 +203,7 @@
 #define TYPE_AndruavMessage_P2P_STATUS                  6506
 
 
+#define TYPE_AndruavMessage_DUMMY                       9999
 
 // Andruav Mission Types
 #define TYPE_CMissionItem                                    0

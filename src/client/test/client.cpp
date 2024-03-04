@@ -2,6 +2,9 @@
 #include <string>
 #include <random>
 
+#include "../src/helpers/json.hpp"
+using Json = nlohmann::json;
+
 #include "../src/helpers/colors.hpp"
 #include "../src/uavos_common/uavos_module.hpp"
 
@@ -61,11 +64,23 @@ std::string generateRandomModuleID() {
 }
 
 
+void sendMsg ()
+{
+    Json message=
+    {
+        {"t", "THIS IS A TEST MESSAGE"},
+
+        {"long", "Received the likewise law graceful his. Nor might set along charm now equal green. Pleased yet equally correct colonel not one. Say anxious carried compact conduct sex general nay certain. Mrs for recommend exquisite household eagerness preserved now. My improved honoured he am ecstatic quitting greatest formerly."}
+    };
+
+    cModule.sendJMSG("", message, TYPE_AndruavMessage_DUMMY, true);
+}
+
 int main (int argc, char *argv[])
 {
 
     if (argc < 4) {
-        std::cerr << "Insufficient arguments. Usage: app module_name listen_port(60003) broker_port(60000)" << std::endl;
+        std::cerr << _INFO_CONSOLE_BOLD_TEXT << "Insufficient arguments. Usage: app module_name listen_port(60003) broker_port(60000)" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         return 1;
     }
     
@@ -99,8 +114,9 @@ int main (int argc, char *argv[])
     
     while (!exit_me)
     {
-       std::this_thread::sleep_for(std::chrono::seconds(1));
+       std::this_thread::sleep_for(std::chrono::milliseconds(10));
        std::cout << "CLIENT RUNNING " << std::endl; 
+       sendMsg();
     }
 
 
