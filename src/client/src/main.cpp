@@ -73,7 +73,7 @@ int main (int argc, char *argv[])
         "My-MODULE Module",
         "e27e099d91de",
         "0.0.1",
-        Json::array(MESSAGE_FILTER)
+        Json_de::array(MESSAGE_FILTER)
     );
     cModule.addModuleFeatures(MODULE_FEATURE_SENDING_TELEMETRY);
     cModule.addModuleFeatures(MODULE_FEATURE_RECEIVING_TELEMETRY);

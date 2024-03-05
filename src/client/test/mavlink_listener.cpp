@@ -65,7 +65,7 @@ int main (int argc, char *argv[])
         "MAV-LST",
         "mav27e099d91de",
         "0.0.1",
-        Json::array(MESSAGE_FILTER)
+        Json_de::array(MESSAGE_FILTER)
     );
 
     cModule.addModuleFeatures(MODULE_FEATURE_SENDING_TELEMETRY);

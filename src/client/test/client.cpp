@@ -3,7 +3,7 @@
 #include <random>
 
 #include "../src/helpers/json.hpp"
-using Json = nlohmann::json;
+using Json_de = nlohmann::json;
 
 #include "../src/helpers/colors.hpp"
 #include "../src/uavos_common/uavos_module.hpp"
@@ -66,7 +66,7 @@ std::string generateRandomModuleID() {
 
 void sendMsg ()
 {
-    Json message=
+    Json_de message=
     {
         {"t", "THIS IS A TEST MESSAGE"},
 
@@ -98,7 +98,7 @@ int main (int argc, char *argv[])
         module_name,
         module_id,
         "0.0.1",
-        Json::array()  // WAITING FOR NO MESSAGES
+        Json_de::array()  // WAITING FOR NO MESSAGES
     );
 
     // Add feature this module supports. [OPTIONAL]

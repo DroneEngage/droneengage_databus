@@ -8,7 +8,7 @@
 #include "../helpers/json.hpp"
 #include "udpClient.hpp"
 #include "messages.hpp"
-using Json = nlohmann::json;
+using Json_de = nlohmann::json;
 
 typedef enum {
     HARDWARE_TYPE_UNDEFINED     = 0,
@@ -18,6 +18,9 @@ typedef enum {
 
 #define MODULE_FEATURE_RECEIVING_TELEMETRY      "R"
 #define MODULE_FEATURE_SENDING_TELEMETRY        "T"
+#define MODULE_FEATURE_CAPTURE_IMAGE            "C"
+#define MODULE_FEATURE_CAPTURE_VIDEO            "V"
+
 
 #define MODULE_CLASS_FCB                        "fcb"
 #define MODULE_CLASS_VIDEO                      "camera"
@@ -60,7 +63,7 @@ namespace comm
                  std::string module_id,
                  std::string module_key,
                  std::string module_version,
-                 Json message_filter
+                 Json_de message_filter
             );
             
             bool init (const std::string targetIP, int broadcatsPort, const std::string host, int listenningPort);
@@ -71,9 +74,9 @@ namespace comm
 
         public:
 
-            void sendBMSG (const std::string& targetPartyID, const char * bmsg, const int bmsg_length, const int& andruav_message_id, const bool& internal_message, const Json& message_cmd);
-            void sendJMSG (const std::string& targetPartyID, const Json& jmsg, const int& andruav_message_id, const bool& internal_message);
-            void sendSYSMSG (const Json& jmsg, const int& andruav_message_id);
+            void sendBMSG (const std::string& targetPartyID, const char * bmsg, const int bmsg_length, const int& andruav_message_id, const bool& internal_message, const Json_de& message_cmd);
+            void sendJMSG (const std::string& targetPartyID, const Json_de& jmsg, const int& andruav_message_id, const bool& internal_message);
+            void sendSYSMSG (const Json_de& jmsg, const int& andruav_message_id);
             void sendMREMSG(const int& command_type);
 
 
@@ -106,9 +109,8 @@ namespace comm
              * 't': hardware_type. 
              * 'z': resend request flag
              * @param reSend if true then server should reply with server json_msg
-             * @return const Json 
              */
-            Json createJSONID (bool reSend) const;
+            void createJSONID (bool reSend) ;
 
 
             /**
@@ -128,14 +130,14 @@ namespace comm
              * @brief Get the Module Features object
              *  module features i.e. can transmit, can recieve, needs stream ...etc.
              * in this case we use T & R only. 
-             * @return const Json 
+             * @return const Json_de 
              */
-            inline const Json getModuleFeatures() const
+             inline const Json_de getModuleFeatures() const
             {
                 return m_module_features;
             }
 
-            inline void addModuleFeatures(const std::string feature)
+             inline void addModuleFeatures(const std::string feature)
             {
                 m_module_features.push_back(feature);
             }
@@ -189,7 +191,7 @@ namespace comm
             * @brief module features i.e. can transmit, can recieve, needs stream ...etc.
             * in this case we use T & R only.
             */
-            Json m_module_features = Json::array();
+            Json_de m_module_features = Json_de::array();
 
             /**
              * @brief Identifies the type of the module.
@@ -240,7 +242,7 @@ namespace comm
              */
             std::string  m_group_id;
             
-            Json m_message_filter;
+            Json_de m_message_filter;
 
             void (*m_OnReceive)(const char *, int len) = nullptr;
 

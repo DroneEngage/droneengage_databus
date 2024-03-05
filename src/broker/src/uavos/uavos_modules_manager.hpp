@@ -13,7 +13,7 @@
 
 
 #include "../helpers/json.hpp"
-using Json = nlohmann::json;
+using Json_de = nlohmann::json;
 
 #include "../global.hpp"
 #include "../status.hpp"
@@ -49,7 +49,7 @@ typedef struct
 {
     std::string module_id;
     std::string module_class;
-    Json modules_features = Json::array();
+    Json_de modules_features = Json_de::array();
     std::string module_key;
     std::string hardware_serial;
     std::string version;
@@ -65,7 +65,7 @@ typedef struct
 typedef struct 
 {
     std::string module_id;
-    Json camera_entry;      //[Active, id, ln, p, r , v]
+    Json_de camera_entry;      //[Active, id, ln, p, r , v]
     std::string global_index;  // id
     std::string logical_name;
     bool is_recording;
@@ -136,24 +136,24 @@ namespace comm
             void uninit();
          
             void parseIntermoduleMessage (const char * full_mesage, const std::size_t full_message_length, const struct sockaddr_in* ssock);
-            Json createJSONID (const bool& reSend);
+            Json_de createJSONID (const bool& reSend);
             
-            void processModuleRemoteExecute (const Json ms);
+            void processModuleRemoteExecute (const Json_de ms);
             void processIncommingServerMessage (const std::string& sender_party_id, const int& message_type, const char * message, const std::size_t datalength, const std::string& sender_module_key);
             void forwardMessageToModule (const char * message, const std::size_t datalength, const MODULE_ITEM_TYPE * module_item);
             
             /**
              * @brief Get the Camera List object that defines all camera devices attached to all camera modules.
              * 
-             * @return Json 
+             * @return Json_de 
              */
-            Json getCameraList();
+            Json_de getCameraList();
 
             bool handleDeadModules();
 
             void handleOnAndruavServerConnection (const int status);
             
-            Json getModuleListAsJSON();
+            Json_de getModuleListAsJSON();
 
         public:
 
@@ -167,7 +167,7 @@ namespace comm
         
         private:
 
-            bool handleModuleRegistration (const Json& msg_cmd, const struct sockaddr_in* ssock);
+            bool handleModuleRegistration (const Json_de& msg_cmd, const struct sockaddr_in* ssock);
 
             /**
              * @brief called by handleModuleRegistration to update subscribed messages for a module.
@@ -178,14 +178,14 @@ namespace comm
              * @return true module has been added.
              * @return false no new modules.
              */
-            bool updateModuleSubscribedMessages (const std::string& module_id, const Json& message_array);
+            bool updateModuleSubscribedMessages (const std::string& module_id, const Json_de& message_array);
 
             
-            bool updateUavosPermission (const Json& module_permissions);
+            bool updateUavosPermission (const Json_de& module_permissions);
 
 
             
-            void updateCameraList(const std::string& module_id, const Json& msg_cmd);
+            void updateCameraList(const std::string& module_id, const Json_de& msg_cmd);
 
             
             void cleanOrphanCameraEntries (const std::string& module_id, const uint64_t& time_now);
@@ -194,7 +194,7 @@ namespace comm
             void checkLicenseStatus(MODULE_ITEM_TYPE * module_item);
 
             
-            //void sendMessageToCommunicationServer (const char * full_message, const std::size_t full_message_length, const bool &is_system, const bool &is_binary, const std::string &target_id, const int msg_type, const Json &msg_cmd );
+            //void sendMessageToCommunicationServer (const char * full_message, const std::size_t full_message_length, const bool &is_system, const bool &is_binary, const std::string &target_id, const int msg_type, const Json_de &msg_cmd );
 
         private:
 
