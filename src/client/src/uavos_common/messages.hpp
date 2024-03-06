@@ -109,10 +109,12 @@
 #define TYPE_AndruavMessage_GPS                         1002
 #define TYPE_AndruavMessage_POWER                       1003
 #define TYPE_AndruavMessage_ID 	                        1004
-#define TYPE_AndruavMessage_RemoteExecute 		        1005     
+#define TYPE_AndruavMessage_RemoteExecute 		        1005
+#define TYPE_AndruavMessage_IMG                         1006     
 #define TYPE_AndruavMessage_Error                       1008    
 #define TYPE_AndruavMessage_FlightControl               1010
 #define TYPE_AndruavMessage_DroneReport                 1020
+#define TYPE_AndruavMessage_Signaling                   1021
 #define TYPE_AndruavMessage_HomeLocation                1022
 #define TYPE_AndruavMessage_GeoFence                    1023
 #define TYPE_AndruavMessage_ExternalGeoFence            1024
@@ -226,13 +228,24 @@
 
 
 // P2P Parameters
-
 #define P2P_ACTION_RESTART_TO_MAC                           0
 #define P2P_ACTION_CONNECT_TO_MAC                           1
 #define P2P_ACTION_CANDICATE_MAC                            2
 
 #define P2P_STATUS_CONNECTED_TO_MAC                         0
 #define P2P_STATUS_DISCONNECTED_FROM_MAC                    1
+
+
+
+// CAMERA MODULE MESSAGES
+
+#define EXTERNAL_CAMERA_TYPE_UNKNOWN                        0
+#define EXTERNAL_CAMERA_TYPE_RTCWEBCAM                      2
+
+#define RemoteCommand_STREAMVIDEO 		                    110
+#define RemoteCommand_RECORDVIDEO 		                    111
+#define RemoteCommand_STREAMVIDEORESUME 	                112
+#define RemoteCommand_SWITCHCAM 			                114
 
 
 // // Remote Control Sub Actions
