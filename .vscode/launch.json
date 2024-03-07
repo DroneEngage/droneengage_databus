@@ -22,6 +22,25 @@
                     "ignoreFailures": true
                 }
             ]
+        },
+        {
+            "name": "file-sender",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/client/bin/image_sender",
+            "args": ["./img.jpg"],
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}/src/client/",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing -gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
         }
 
     ]

@@ -1,5 +1,6 @@
 
-
+#include <iostream>
+#include <fstream>
 
 #include <exception>
 #include <typeinfo>
@@ -626,6 +627,20 @@ bool uavos::comm::CUavosModulesManager::handleModuleRegistration (const Json& ms
 }
 
 
+void saveBinaryToFile(const char* binary_message, size_t binary_length, const std::string& file_path)
+{
+    std::ofstream file(file_path, std::ios::binary | std::ios::trunc);
+    if (file.is_open())
+    {
+        file.write(binary_message, binary_length);
+        file.close();
+        std::cout << "Binary content saved to file: " << file_path << std::endl;
+    }
+    else
+    {
+        std::cout << "Failed to open the file: " << file_path << std::endl;
+    }
+}
 
 /**
  * @brief 
@@ -637,6 +652,12 @@ bool uavos::comm::CUavosModulesManager::handleModuleRegistration (const Json& ms
  */
 void uavos::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_message, const std::size_t full_message_length, const struct sockaddr_in* ssock)
 {
+
+    if (full_message_length > 10000)
+    {
+        std::cout << "Large Message " << std::endl;
+    }
+
     Json jsonMessage;
     try
     {
@@ -776,8 +797,9 @@ void uavos::comm::CUavosModulesManager::parseIntermoduleMessage (const char * fu
         { 
             if (!intermodule_msg)
             {
-                const char * binary_message = (char *)(memchr (full_message, 0x0, full_message_length));
-                int binary_length = binary_message==0?0:(full_message_length - (binary_message - full_message +1));
+                const char * binary_message = (char *)(memchr (full_message, 0x0, full_message_length))+1;
+                int binary_length = binary_message==0?0:(full_message_length - (binary_message - full_message +1))-1;
+                saveBinaryToFile (binary_message, binary_length, "img.jpg");
                 andruav_servers::CAndruavCommServer::getInstance().API_sendBinaryCMD(target_id, mt, &binary_message[1], binary_length, Json());   
 
                 break;

@@ -14,10 +14,13 @@ using Json_de = nlohmann::json;
 #include <plog/Log.h> 
 #include "plog/Initializers/RollingFileInitializer.h"
 
-#define MAXLINE 65507 
+#ifndef MAXLINE
+#define MAXLINE 0xffff 
+#endif
+
 char buffer[MAXLINE]; 
 
-#define MAX_UDP_DATABUS_PACKET_SIZE 30
+#define MAX_UDP_DATABUS_PACKET_SIZE 8192
 
 const int chunkSize = MAX_UDP_DATABUS_PACKET_SIZE; 
 
@@ -169,7 +172,7 @@ void uavos::comm::CUDPCommunicator::InternalReceiverEntry()
     int n;
     __socklen_t sender_address_size = sizeof (cliaddr);
    
-    std::map<in_port_t, std::vector<uint8_t>> receivedChunksBySource; // Map to store concatenated chunks by source
+    std::map<in_port_t, std::vector<std::vector<uint8_t>>> receivedChunksBySource; // Map to store concatenated chunks by source
 
     while (!m_stopped_called)
     {
@@ -182,7 +185,7 @@ void uavos::comm::CUDPCommunicator::InternalReceiverEntry()
 
             // First two bytes represent the chunk number
             const uint16_t chunkNumber = (buffer[1] << 8) | buffer[0]; 
-            
+            std::cout << "chunkNumber:" << chunkNumber << " :len :" << n << std::endl;
             if (chunkNumber==0)
             {
                 // clear any corrupted/incomplete packets
@@ -193,15 +196,25 @@ void uavos::comm::CUDPCommunicator::InternalReceiverEntry()
             const bool end = chunkNumber == 0xFFFF;
 
             // Store the received chunk in the map
-            receivedChunksBySource[cliaddr.sin_port].insert(receivedChunksBySource[cliaddr.sin_port].end(), buffer + 2 * sizeof(uint8_t), buffer + n);
+            std::vector<std::vector<uint8_t>>& chunkVector = receivedChunksBySource[cliaddr.sin_port];
+
+            chunkVector.emplace_back(buffer + 2 * sizeof(uint8_t), buffer + n);
 
             // Check if we have received all the chunks
             if (end)
             {
                 // Concatenate the chunks in order
                 
-                std::vector<uint8_t>& concatenatedData = receivedChunksBySource[cliaddr.sin_port];
+                std::vector<uint8_t> concatenatedData;
+                for (auto& chunk : chunkVector)
+                {
+                    concatenatedData.insert(concatenatedData.end(), chunk.begin(), chunk.end());
+                }
+                
                 concatenatedData.push_back(0);
+
+                // std::vector<uint8_t>& concatenatedData = receivedChunksBySource[cliaddr.sin_port];
+                // concatenatedData.push_back(0);
                 
                 // Call the onReceive callback with the concatenated data
                 if (m_callback != nullptr)
