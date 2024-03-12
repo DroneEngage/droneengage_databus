@@ -226,7 +226,7 @@ void uavos::comm::CModule::onReceive (const char * message, int len)
                         bFirstReceived = true;
                     }
                     
-                    if (m_OnReceive!= nullptr) m_OnReceive(message, len);
+                    if (m_OnReceive!= nullptr) m_OnReceive(message, len, jMsg);
 
                     return ;
                 }
@@ -243,12 +243,9 @@ void uavos::comm::CModule::onReceive (const char * message, int len)
                     break;
             }
             
-            
-
-            
         }
 
-        if (m_OnReceive!= nullptr) m_OnReceive(message, len);
+        if (m_OnReceive!= nullptr) m_OnReceive(message, len, jMsg);
     }
     catch(const std::exception& e)
     {
