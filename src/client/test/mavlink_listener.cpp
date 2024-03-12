@@ -45,7 +45,7 @@ bool exit_me = false;
 
 CModule& cModule= CModule::getInstance(); 
 
-void onReceive (const char * message, int len)
+void onReceive (const char * message, int len, Json_de jMsg)
 {
     #ifdef DEBUG        
         std::cout << _LOG_CONSOLE_TEXT << "RX MSG: :len " << std::to_string(len) << ":" << message <<   _NORMAL_CONSOLE_TEXT_ << std::endl;

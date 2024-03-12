@@ -80,17 +80,17 @@ int main (int argc, char *argv[])
 {
 
     if (argc < 4) {
-        std::cerr << _INFO_CONSOLE_BOLD_TEXT << "Insufficient arguments. Usage: app module_name listen_port(60003) broker_port(60000)" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cerr << _INFO_CONSOLE_BOLD_TEXT << "Insufficient arguments. Usage: app module_name broker_port(60000) listen_port(60003)" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         return 1;
     }
     
     std::string module_name = argv[1];
-    int listen_port = std::stoi(argv[2]);
-    int target_port = std::stoi(argv[3]);
-
+    int target_port = std::stoi(argv[2]);
+    int listen_port = std::stoi(argv[3]);
+    
     std::string module_id = generateRandomModuleID();
     
-    std::cout << _INFO_CONSOLE_TEXT << "HELLO " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _INFO_CONSOLE_TEXT << "Client Module-Started " << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
     // Define a Module
     cModule.defineModule(
@@ -110,12 +110,12 @@ int main (int argc, char *argv[])
     
     cModule.init("0.0.0.0",target_port, "0.0.0.0", listen_port);
     
-    std::cout << "CLIENT RUNNING " << std::endl; 
+    std::cout << "Client Module RUNNING " << std::endl; 
     
     while (!exit_me)
     {
-       std::this_thread::sleep_for(std::chrono::milliseconds(10));
-       std::cout << "CLIENT RUNNING " << std::endl; 
+       std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+       std::cout << "Client Module RUNNING " << std::endl; 
        sendMsg();
     }
 
