@@ -206,6 +206,8 @@
 
 
 #define TYPE_AndruavMessage_DUMMY                       9999
+#define TYPE_AndruavMessage_USER_RANGE_START            80000
+#define TYPE_AndruavMessage_USER_RANGE_END              90000
 
 // Andruav Mission Types
 #define TYPE_CMissionItem                                    0
