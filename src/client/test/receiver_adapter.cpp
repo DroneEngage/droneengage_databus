@@ -1,6 +1,8 @@
 #include <iostream>
+#include <queue>
 #include <string>
 #include <random>
+#include <thread>
 
 #include "../src/helpers/json.hpp"
 using Json_de = nlohmann::json;
@@ -21,6 +23,10 @@ CModule& cModule= CModule::getInstance();
 #define TYPE_CUSTOM_SOME_DATA  TYPE_AndruavMessage_USER_RANGE_START+0
 #define TYPE_CUSTOM_CHANGE_RATE  TYPE_AndruavMessage_USER_RANGE_START+1
 
+std::mutex messageQueueMutex;
+
+void sendMsg (int value);
+
 
 std::string generateRandomModuleID() {
     std::random_device rd;
@@ -35,27 +41,78 @@ std::string generateRandomModuleID() {
     return moduleID;
 }
 
+std::queue<std::vector<char>> messageQueue;
+
+
+void processMessages() {
+
+    std::unique_lock<std::mutex> lock(messageQueueMutex, std::defer_lock);
+
+    std::cout << _INFO_CONSOLE_BOLD_TEXT << "Processing message IN " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+
+    while (!messageQueue.empty()) {
+            // Get the front message from the queue
+        lock.lock();
+        std::vector<char>& frontMessage = messageQueue.front();
+        // Process or use the front message
+        // Example: Print the size of the message
+        std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "Processing message of size " << messageQueue.size() << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        
+
+        #ifdef DEBUG        
+        std::cout << _LOG_CONSOLE_TEXT << "RX MSG:" << ":len " << std::to_string(frontMessage.size()) << ":" << frontMessage.data() <<   _NORMAL_CONSOLE_TEXT_ << std::endl;
+        #endif
+
+        messageQueue.pop();
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(300));
+
+        lock.unlock();    
+        // Pop the front message from the queue
+        
+    }
+
+    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Processing message FINISHED " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        
+}
+
+
 void onReceive (const char * message, int len, Json_de jMsg)
 {
     const int msgid = jMsg[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
 
-    #ifdef DEBUG        
-        std::cout << _LOG_CONSOLE_TEXT << "RX MSG:" << msgid << ":len " << std::to_string(len) << ":" << message <<   _NORMAL_CONSOLE_TEXT_ << std::endl;
-    #endif
-
-    if (msgid==TYPE_CUSTOM_SOME_DATA)
+    if (msgid == TYPE_CUSTOM_SOME_DATA)
     {
-        if (message_processed)
+
+        std::unique_lock<std::mutex> lock(messageQueueMutex, std::defer_lock);
+        // Add message to the queue
+        std::vector<char> msg(message, message + len);
+        bool locked = lock.try_lock();
+        if (locked)
         {
-            sendMsg(2);
+            
+            // The mutex was successfully locked
+            std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "The mutex is locked." <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+            messageQueue.push(msg);
+            lock.unlock();
+            
+            sendMsg(-5); // send faster
         }
         else
         {
-            sendMsg(-2);
+            // The mutex is already locked
+            std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "The mutex is already locked." <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+            sendMsg(+5); // send slower
+            lock.lock();
+            messageQueue.push(msg);
+            lock.unlock();
         }
-    }
+        
+        
+        // Print the added message
+        std::cout << "Added message: " << message << std::endl;
 
-    
+    }
 }
 
 
@@ -77,7 +134,6 @@ void sendMsg (int value)
 
 int main (int argc, char *argv[])
 {
-
     if (argc < 3) {
         std::cerr << _INFO_CONSOLE_BOLD_TEXT << "Insufficient arguments. Usage: app module_name broker_port(60000)" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         return 1;
@@ -113,8 +169,9 @@ int main (int argc, char *argv[])
     
     while (!exit_me)
     {
-       std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+       //std::this_thread::sleep_for(std::chrono::milliseconds(300));
        std::cout << "Receiver RUNNING " << std::endl; 
+       processMessages();
     }
 
 

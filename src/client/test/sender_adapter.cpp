@@ -41,7 +41,7 @@ void onReceive (const char * message, int len, Json_de jMsg)
 {
     const int msgid = jMsg[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
 
-    #ifdef DEBUG        
+    #ifdef DDEBUG        
         std::cout << _LOG_CONSOLE_TEXT << "RX MSG:" << msgid << ":len: " << std::to_string(len) << ":" << message <<   _NORMAL_CONSOLE_TEXT_ << std::endl;
         std::cout << jMsg.dump() << std::endl;
     #endif
@@ -50,11 +50,20 @@ void onReceive (const char * message, int len, Json_de jMsg)
     {
         const int delta_delay = jMsg["ms"]["value"].get<int>();
         std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "delta_delay:" << _INFO_CONSOLE_TEXT << delta_delay << _NORMAL_CONSOLE_TEXT_ << std::endl;
-        delay += delta_delay;
-    }
-    
-}
 
+        if (delta_delay<0)
+        {
+            if (delay > 100)
+            {
+                delay += delta_delay;
+            }
+        }
+        else
+        {
+            delay += delta_delay;
+        }
+    }
+}
 
 
 void sendMsg ()
@@ -108,8 +117,9 @@ int main (int argc, char *argv[])
     
     while (!exit_me)
     {
+       std::cout << _INFO_CONSOLE_TEXT << "Waiting " << _LOG_CONSOLE_TEXT << delay << _NORMAL_CONSOLE_TEXT_ <<  std::endl; 
        std::this_thread::sleep_for(std::chrono::milliseconds(delay));
-       std::cout << "Sender RUNNING " << std::endl; 
+       std::cout << "Sender RUNNING " << _NORMAL_CONSOLE_TEXT_ << std::endl; 
        sendMsg();
     }
 
