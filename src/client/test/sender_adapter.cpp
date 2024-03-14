@@ -14,6 +14,8 @@ using namespace uavos::comm;
 bool exit_me = false;
 int delay = 1000;
 int counter = 0;
+std::chrono::time_point<std::chrono::system_clock> oldnow = std::chrono::system_clock::now();
+
 
 #define MESSAGE_FILTER {TYPE_AndruavMessage_USER_RANGE_START+1,\
                         TYPE_AndruavMessage_USER_RANGE_START+2}
@@ -22,6 +24,8 @@ CModule& cModule= CModule::getInstance();
 
 #define TYPE_CUSTOM_SOME_DATA  TYPE_AndruavMessage_USER_RANGE_START+0
 #define TYPE_CUSTOM_CHANGE_RATE  TYPE_AndruavMessage_USER_RANGE_START+1
+
+void sendMsg ();
 
 
 std::string generateRandomModuleID() {
@@ -51,8 +55,16 @@ void onReceive (const char * message, int len, Json_de jMsg)
     {
         const int delta_delay = jMsg["ms"]["value"].get<int>();
         std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "delta_delay:" << _INFO_CONSOLE_BOLD_TEXT << delta_delay << _NORMAL_CONSOLE_TEXT_ << std::endl;
-
-        delay += delta_delay;
+        if (delta_delay==0) 
+        {
+            delay = delay / 2;
+            sendMsg();
+            return ;
+        }       
+        else
+        {
+            delay += delta_delay;
+        }
         
         if (delay < 10)
         {
@@ -119,10 +131,17 @@ int main (int argc, char *argv[])
     
     while (!exit_me)
     {
-       std::cout << _LOG_CONSOLE_TEXT << "Next Message in " << _INFO_CONSOLE_BOLD_TEXT << delay << _LOG_CONSOLE_TEXT << " ms" << _NORMAL_CONSOLE_TEXT_ <<  std::endl; 
-       std::this_thread::sleep_for(std::chrono::milliseconds(delay));
-       std::cout << _TEXT_BOLD_HIGHTLITED_ << "SENDING MESSAGE NUMBER:" << _SUCCESS_CONSOLE_BOLD_TEXT_ << counter << _NORMAL_CONSOLE_TEXT_ << std::endl; 
-       sendMsg();
+        std::cout << _LOG_CONSOLE_TEXT << "Next Message in " << _INFO_CONSOLE_BOLD_TEXT << delay << _LOG_CONSOLE_TEXT << " ms" << _NORMAL_CONSOLE_TEXT_ <<  std::endl; 
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        
+
+        std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
+        if (now - oldnow > std::chrono::milliseconds(delay)) {
+            oldnow = now;
+            std::cout << _TEXT_BOLD_HIGHTLITED_ << "SENDING MESSAGE NUMBER:" << _SUCCESS_CONSOLE_BOLD_TEXT_ << counter << _NORMAL_CONSOLE_TEXT_ << std::endl; 
+            sendMsg();
+        }
+        
     }
 
 

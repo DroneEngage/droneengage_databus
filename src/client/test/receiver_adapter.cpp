@@ -61,6 +61,9 @@ void processMessages() {
 
     std::cout << _INFO_CONSOLE_BOLD_TEXT << "Check Queue " << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
+    static int counter = 0;
+    static int diff = 0;
+
     static int i_pid = 0;
         
     while (messageQueue.size()>0) {
@@ -73,9 +76,7 @@ void processMessages() {
         
         // Process or use the front message
         // Example: Print the size of the message
-        static int counter = 0;
-        const int diff = messageQueue.size() - counter;
-
+        diff = messageQueue.size() - counter + 1;
         counter = messageQueue.size();
         std::cout << _TEXT_BOLD_HIGHTLITED_ << "PROCESS MESSAGE : " << _SUCCESS_CONSOLE_BOLD_TEXT_ << messages_processed_counter << _NORMAL_CONSOLE_TEXT_ << std::endl;
         std::cout << _TEXT_BOLD_HIGHTLITED_ << "QUEUE : " << _SUCCESS_CONSOLE_BOLD_TEXT_ << counter << " diff:" << _SUCCESS_CONSOLE_BOLD_TEXT_ << diff << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -96,22 +97,19 @@ void processMessages() {
         ++messages_processed_counter;
         
         // Pop the front message from the queue
-        if (counter > 2)
-        {
-            sendMsg(+2 * counter * diff); // send slower
+        if ((counter > 2) && (diff>0))
+        {   
+            
+            sendMsg(+2 * counter); // send slower
             i_pid = 0;
         }
-        // else
-        // {
-        //     if (i_pid>100) i_pid = 100;
-        //     sendMsg(-5 * i_pid); // send faster
-            
-        // }
+        else
+        {
+            if (i_pid>100) i_pid = 100;
+        }
     }
 
-    i_pid += 1;
-    if (i_pid>100) i_pid = 100;
-    sendMsg(-5 * i_pid); // send faster
+    sendMsg(0); // send now
         
     std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "IDLE " << _NORMAL_CONSOLE_TEXT_ << std::endl;
         
