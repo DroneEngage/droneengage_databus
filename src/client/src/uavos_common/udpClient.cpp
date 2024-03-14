@@ -190,8 +190,8 @@ void uavos::comm::CUDPClient::InternalReceiverEntry()
     while (!m_stopped_called)
     {
         n = recvfrom(m_SocketFD, (char*)buffer, MAXLINE, MSG_WAITALL, (struct sockaddr*)&cliaddr, &sender_address_size);
-        #ifdef DEBUG
-        std::cout << "CUDPClient::InternalReceiverEntry recvfrom" << std::endl;
+        #ifdef DDEBUG
+            std::cout << "CUDPClient::InternalReceiverEntry recvfrom" << std::endl;
         #endif
 
         if (n > 0)
@@ -239,11 +239,9 @@ void uavos::comm::CUDPClient::InternalReceiverEntry()
         }
     }
 
-    #ifdef DEBUG
-    #ifdef DEBUG_DETAILED
-    std::cout << __FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  " << _LOG_CONSOLE_TEXT
+    #ifdef DDEBUG
+        std::cout << __FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  " << _LOG_CONSOLE_TEXT
               << "DEBUG: InternalReceiverEntry EXIT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    #endif
     #endif
 }
 
@@ -279,10 +277,8 @@ void uavos::comm::CUDPClient::InternelSenderIDEntry()
         sleep (1);
     }
 
-    #ifdef DEBUG
-	#ifdef DEBUG_DETAILED
-	//std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: InternelSenderIDEntry EXIT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    #endif
+    #ifdef DDEBUG
+        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: InternelSenderIDEntry EXIT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
 }
@@ -304,7 +300,10 @@ void uavos::comm::CUDPClient::sendMSG (const char * msg, const int length)
 
         while (remainingLength > 0)
         {
-            std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: InternelSenderIDEntry EXIT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            #ifdef DDEBUG
+                std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: InternelSenderIDEntry EXIT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            #endif
+
             // TODO: BUG HERE WHEN PACKET = chunkSize
             int chunkLength = std::min(chunkSize, remainingLength);
             remainingLength -= chunkLength;
