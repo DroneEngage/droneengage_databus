@@ -13,6 +13,7 @@ using namespace uavos;
 using namespace uavos::comm;
 bool exit_me = false;
 int delay = 1000;
+int counter = 0;
 
 #define MESSAGE_FILTER {TYPE_AndruavMessage_USER_RANGE_START+1,\
                         TYPE_AndruavMessage_USER_RANGE_START+2}
@@ -49,19 +50,15 @@ void onReceive (const char * message, int len, Json_de jMsg)
     if (msgid == TYPE_CUSTOM_CHANGE_RATE)
     {
         const int delta_delay = jMsg["ms"]["value"].get<int>();
-        std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "delta_delay:" << _INFO_CONSOLE_TEXT << delta_delay << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "delta_delay:" << _INFO_CONSOLE_BOLD_TEXT << delta_delay << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
-        if (delta_delay<0)
+        delay += delta_delay;
+        
+        if (delay < 10)
         {
-            if (delay > 100)
-            {
-                delay += delta_delay;
-            }
+            delay = 10;
         }
-        else
-        {
-            delay += delta_delay;
-        }
+            
     }
 }
 
@@ -70,11 +67,12 @@ void sendMsg ()
 {
     Json_de message=
     {
-        {"t", "SERNDER DATA"},
+        {"t", "SENDING DATA"},
 
-        {"long", "MORE SENDER DATA ... MORE SENDER DATA ... MORE SENDER DATA "}
+        {"counter", counter}
     };
 
+    ++counter;
     cModule.sendJMSG("", message, TYPE_AndruavMessage_USER_RANGE_START, true);
 }
 
@@ -83,16 +81,20 @@ int main (int argc, char *argv[])
 {
 
     if (argc < 3) {
-        std::cerr << _INFO_CONSOLE_BOLD_TEXT << "Insufficient arguments. Usage: app module_name broker_port(60000)" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cerr << _INFO_CONSOLE_BOLD_TEXT << "Insufficient arguments. Usage: app module_name broker_port(60000) [rate(default 1000)]" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         return 1;
     }
     
     std::string module_name = argv[1];
     int target_port = std::stoi(argv[2]);
-    
+    if (argc==4)
+    {
+        delay = std::stoi(argv[3]);
+    }
+
     std::string module_id = generateRandomModuleID();
     
-    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Sender Rate-Adapter " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "SENDING Rate-Adapter " << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
     // Define a Module
     cModule.defineModule(
@@ -117,9 +119,9 @@ int main (int argc, char *argv[])
     
     while (!exit_me)
     {
-       std::cout << _INFO_CONSOLE_TEXT << "Waiting " << _LOG_CONSOLE_TEXT << delay << _NORMAL_CONSOLE_TEXT_ <<  std::endl; 
+       std::cout << _LOG_CONSOLE_TEXT << "Next Message in " << _INFO_CONSOLE_BOLD_TEXT << delay << _LOG_CONSOLE_TEXT << " ms" << _NORMAL_CONSOLE_TEXT_ <<  std::endl; 
        std::this_thread::sleep_for(std::chrono::milliseconds(delay));
-       std::cout << "Sender RUNNING " << _NORMAL_CONSOLE_TEXT_ << std::endl; 
+       std::cout << _TEXT_BOLD_HIGHTLITED_ << "SENDING MESSAGE NUMBER:" << _SUCCESS_CONSOLE_BOLD_TEXT_ << counter << _NORMAL_CONSOLE_TEXT_ << std::endl; 
        sendMsg();
     }
 

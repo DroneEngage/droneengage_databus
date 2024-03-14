@@ -10,10 +10,16 @@ using Json_de = nlohmann::json;
 #include "../src/helpers/colors.hpp"
 #include "../src/uavos_common/uavos_module.hpp"
 
+#include <mutex>
+#include <condition_variable>
+
 
 using namespace uavos;
 using namespace uavos::comm;
 bool exit_me = false;
+int delay = 1000;
+int messages_input_counter = 0;
+int messages_processed_counter = 0;
 bool message_processed = false;
 
 #define MESSAGE_FILTER {TYPE_AndruavMessage_USER_RANGE_START}
@@ -24,6 +30,11 @@ CModule& cModule= CModule::getInstance();
 #define TYPE_CUSTOM_CHANGE_RATE  TYPE_AndruavMessage_USER_RANGE_START+1
 
 std::mutex messageQueueMutex;
+std::mutex messageQueueWaitingMutex;
+
+std::condition_variable messageQueueConditionVariable;
+
+
 
 void sendMsg (int value);
 
@@ -48,31 +59,61 @@ void processMessages() {
 
     std::unique_lock<std::mutex> lock(messageQueueMutex, std::defer_lock);
 
-    std::cout << _INFO_CONSOLE_BOLD_TEXT << "Processing message IN " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _INFO_CONSOLE_BOLD_TEXT << "Check Queue " << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
-    while (!messageQueue.empty()) {
-            // Get the front message from the queue
+    static int i_pid = 0;
+        
+    while (messageQueue.size()>0) {
+        //std::unique_lock<std::mutex> lock_wait(messageQueueWaitingMutex);
+        //messageQueueConditionVariable.wait(lock_wait);
+
+        // Get the front message from the queue
         lock.lock();
         std::vector<char>& frontMessage = messageQueue.front();
+        
         // Process or use the front message
         // Example: Print the size of the message
-        std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "Processing message of size " << messageQueue.size() << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        static int counter = 0;
+        const int diff = messageQueue.size() - counter;
+
+        counter = messageQueue.size();
+        std::cout << _TEXT_BOLD_HIGHTLITED_ << "PROCESS MESSAGE : " << _SUCCESS_CONSOLE_BOLD_TEXT_ << messages_processed_counter << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout << _TEXT_BOLD_HIGHTLITED_ << "QUEUE : " << _SUCCESS_CONSOLE_BOLD_TEXT_ << counter << " diff:" << _SUCCESS_CONSOLE_BOLD_TEXT_ << diff << _NORMAL_CONSOLE_TEXT_ << std::endl;
         
 
         #ifdef DEBUG        
-        std::cout << _LOG_CONSOLE_TEXT << "RX MSG:" << ":len " << std::to_string(frontMessage.size()) << ":" << frontMessage.data() <<   _NORMAL_CONSOLE_TEXT_ << std::endl;
+            //std::cout << _LOG_CONSOLE_TEXT << "RX MSG#" << _INFO_CONSOLE_BOLD_TEXT << messages_processed_counter << ":len " << std::to_string(frontMessage.size()) << ":" << frontMessage.data() <<   _NORMAL_CONSOLE_TEXT_ << std::endl;
         #endif
-
-        messageQueue.pop();
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(300));
-
-        lock.unlock();    
-        // Pop the front message from the queue
+        lock.unlock();
         
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+        
+        lock.lock();
+        messageQueue.pop();
+        lock.unlock();    
+        
+        ++messages_processed_counter;
+        
+        // Pop the front message from the queue
+        if (counter > 2)
+        {
+            sendMsg(+2 * counter * diff); // send slower
+            i_pid = 0;
+        }
+        // else
+        // {
+        //     if (i_pid>100) i_pid = 100;
+        //     sendMsg(-5 * i_pid); // send faster
+            
+        // }
     }
 
-    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Processing message FINISHED " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    i_pid += 1;
+    if (i_pid>100) i_pid = 100;
+    sendMsg(-5 * i_pid); // send faster
+        
+    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "IDLE " << _NORMAL_CONSOLE_TEXT_ << std::endl;
         
 }
 
@@ -84,34 +125,37 @@ void onReceive (const char * message, int len, Json_de jMsg)
     if (msgid == TYPE_CUSTOM_SOME_DATA)
     {
 
-        std::unique_lock<std::mutex> lock(messageQueueMutex, std::defer_lock);
-        // Add message to the queue
+        // Prepare a vector 
         std::vector<char> msg(message, message + len);
+        
+        ++messages_input_counter;
+
+        // Check that it is safe to access Queue.
+        std::unique_lock<std::mutex> lock(messageQueueMutex, std::defer_lock);
+        
         bool locked = lock.try_lock();
         if (locked)
         {
-            
             // The mutex was successfully locked
-            std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "The mutex is locked." <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+            std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "MSG# " << _INFO_CONSOLE_BOLD_TEXT << messages_input_counter << _SUCCESS_CONSOLE_BOLD_TEXT_ << " >> QUEUE" _NORMAL_CONSOLE_TEXT_ << std::endl;
             messageQueue.push(msg);
+            int counter = messageQueue.size();
             lock.unlock();
             
-            sendMsg(-5); // send faster
+            messageQueueConditionVariable.notify_one();
         }
         else
         {
             // The mutex is already locked
-            std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "The mutex is already locked." <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
-            sendMsg(+5); // send slower
+            std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "QUEUE IS BEING PROCESSED" <<  _INFO_CONSOLE_BOLD_TEXT << messages_input_counter << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            
             lock.lock();
+            std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "PUSSHED" <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+            std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "MSG# " << _INFO_CONSOLE_BOLD_TEXT << messages_input_counter << _SUCCESS_CONSOLE_BOLD_TEXT_ << " >> QUEUE" _NORMAL_CONSOLE_TEXT_ << std::endl;
             messageQueue.push(msg);
+            messageQueueConditionVariable.notify_one();
             lock.unlock();
         }
-        
-        
-        // Print the added message
-        std::cout << "Added message: " << message << std::endl;
-
     }
 }
 
@@ -123,9 +167,9 @@ void sendMsg (int value)
     {
         {"t", "CHANGE SPEED"},
 
-        {"long", "PLUS"}
+        {"processed", messages_processed_counter}
     };
-
+    
     message["value"] = value;
 
     cModule.sendJMSG("", message, TYPE_AndruavMessage_USER_RANGE_START+1, true);
@@ -135,12 +179,16 @@ void sendMsg (int value)
 int main (int argc, char *argv[])
 {
     if (argc < 3) {
-        std::cerr << _INFO_CONSOLE_BOLD_TEXT << "Insufficient arguments. Usage: app module_name broker_port(60000)" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cerr << _INFO_CONSOLE_BOLD_TEXT << "Insufficient arguments. Usage: app module_name broker_port(60000) [process rate(default-1000)]" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         return 1;
     }
     
     std::string module_name = argv[1];
     int target_port = std::stoi(argv[2]);
+    if (argc==4)
+    {
+        delay = std::stoi(argv[3]);
+    }
 
     std::string module_id = generateRandomModuleID();
     
@@ -169,7 +217,7 @@ int main (int argc, char *argv[])
     
     while (!exit_me)
     {
-       //std::this_thread::sleep_for(std::chrono::milliseconds(300));
+       std::this_thread::sleep_for(std::chrono::milliseconds(300));
        std::cout << "Receiver RUNNING " << std::endl; 
        processMessages();
     }
@@ -178,4 +226,6 @@ int main (int argc, char *argv[])
     #ifdef DEBUG
 	        std::cout << "EXIT " << std::endl; 
     #endif
+    
+    return 0;
 }
