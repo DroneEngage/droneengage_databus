@@ -324,9 +324,9 @@ void uavos::comm::CUDPClient::sendMSG (const char * msg, const int length)
                 chunkMsg[1] = static_cast<uint8_t>((chunk_number >> 8) & 0xFF);
             }
             
-            // #ifdef DEBUG
-	        // std::cout << "chunkNumber:" << chunk_number << " :chunkLength :" << chunkLength << std::endl;
-            // #endif
+            #ifdef DDEBUG
+	        std::cout << "chunkNumber:" << chunk_number << " :chunkLength :" << chunkLength << std::endl;
+            #endif
             
             // Copy the chunk data into the message
             std::memcpy(chunkMsg + 2 * sizeof(uint8_t), msg + offset, chunkLength);
