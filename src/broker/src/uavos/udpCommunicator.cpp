@@ -158,7 +158,7 @@ void uavos::comm::CUDPCommunicator::stop()
 
 void uavos::comm::CUDPCommunicator::InternalReceiverEntry()
 {
-    #ifdef DEBUG        
+    #ifdef DDEBUG        
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: InternalReceiverEntry" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
@@ -185,7 +185,9 @@ void uavos::comm::CUDPCommunicator::InternalReceiverEntry()
 
             // First two bytes represent the chunk number
             const uint16_t chunkNumber = (buffer[1] << 8) | buffer[0]; 
-            std::cout << "chunkNumber:" << chunkNumber << " :len :" << n << std::endl;
+            #ifdef DDEBUG        
+                std::cout << "chunkNumber:" << chunkNumber << " :len :" << n << std::endl;
+            #endif
             if (chunkNumber==0)
             {
                 // clear any corrupted/incomplete packets
@@ -196,6 +198,7 @@ void uavos::comm::CUDPCommunicator::InternalReceiverEntry()
             const bool end = chunkNumber == 0xFFFF;
 
             // Store the received chunk in the map
+            //! IF MODULE connects and disconnects from many ports this vector will contain orphan data.
             std::vector<std::vector<uint8_t>>& chunkVector = receivedChunksBySource[cliaddr.sin_port];
 
             chunkVector.emplace_back(buffer + 2 * sizeof(uint8_t), buffer + n);
@@ -213,13 +216,9 @@ void uavos::comm::CUDPCommunicator::InternalReceiverEntry()
                 
                 concatenatedData.push_back(0);
 
-                // std::vector<uint8_t>& concatenatedData = receivedChunksBySource[cliaddr.sin_port];
-                // concatenatedData.push_back(0);
-                
                 // Call the onReceive callback with the concatenated data
                 if (m_callback != nullptr)
                 {
-                        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: " << concatenatedData.size() << _NORMAL_CONSOLE_TEXT_ << std::endl;
                         m_callback->onReceive((const char *) concatenatedData.data(), concatenatedData.size(), &cliaddr);
                 }
 
@@ -281,6 +280,11 @@ void uavos::comm::CUDPCommunicator::SendMsg(const char * message, const std::siz
                 MSG_CONFIRM, (const struct sockaddr*) module_address,
                 sizeof(struct sockaddr_in));
 
+            if (remainingLength!=0) 
+            {
+                // fast sending causes packet loss.
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            }
             offset += chunkLength;
             chunk_number++;
         }

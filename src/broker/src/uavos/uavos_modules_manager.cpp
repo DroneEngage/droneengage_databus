@@ -1,11 +1,9 @@
 
 #include <iostream>
-#include <fstream>
 
 #include <exception>
 #include <typeinfo>
 #include <stdexcept>
-
 
 #include <sys/socket.h> 
 #include <arpa/inet.h> 
@@ -40,7 +38,9 @@ static std::mutex g_i_mutex_process;
 
 void uavos::comm::CUavosModulesManager::onReceive (const char * message, int len, struct sockaddr_in *  sock)
 {
-    std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "#####DEBUG:" << message << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #ifdef DDEBUG
+        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "#####DEBUG:" << message << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
     
     parseIntermoduleMessage(message, len, sock);
 
@@ -490,9 +490,10 @@ void uavos::comm::CUavosModulesManager::checkLicenseStatus (MODULE_ITEM_TYPE * m
 bool uavos::comm::CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd, const struct sockaddr_in* ssock)
 {
 
-    // #ifdef DEBUG
-    //     std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: handleModuleRegistration " << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    // #endif
+    #ifdef DDEBUG
+        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: handleModuleRegistration " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
+
     const std::lock_guard<std::mutex> lock(g_i_mutex);
 
     bool updated = false;
@@ -610,12 +611,12 @@ bool uavos::comm::CUavosModulesManager::handleModuleRegistration (const Json& ms
         m_status.is_fcb_module_connected (true); 
     } 
 
-    updated |= updateUavosPermission(module_item->modules_features); //msg_cmd["d"]);
+    updated |= updateUavosPermission(module_item->modules_features); 
 
     // reply with identification if required by module
-    if (validateField(msg_cmd, "z", Json::value_t::boolean))
+    if (validateField(msg_cmd, JSON_INTERMODULE_RESEND, Json::value_t::boolean))
     {
-        if (msg_cmd["z"].get<bool>() == true)
+        if (msg_cmd[JSON_INTERMODULE_RESEND].get<bool>() == true)
         {
             const Json &msg = createJSONID(false);
             std::string msg_dump = msg.dump();    
@@ -627,21 +628,6 @@ bool uavos::comm::CUavosModulesManager::handleModuleRegistration (const Json& ms
 }
 
 
-void saveBinaryToFile(const char* binary_message, size_t binary_length, const std::string& file_path)
-{
-    std::ofstream file(file_path, std::ios::binary | std::ios::trunc);
-    if (file.is_open())
-    {
-        file.write(binary_message, binary_length);
-        file.close();
-        std::cout << "Binary content saved to file: " << file_path << std::endl;
-    }
-    else
-    {
-        std::cout << "Failed to open the file: " << file_path << std::endl;
-    }
-}
-
 /**
  * @brief 
  * Process messages recieved from module and may forward to Andruav ommunication server.
@@ -652,11 +638,6 @@ void saveBinaryToFile(const char* binary_message, size_t binary_length, const st
  */
 void uavos::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_message, const std::size_t full_message_length, const struct sockaddr_in* ssock)
 {
-
-    if (full_message_length > 10000)
-    {
-        std::cout << "Large Message " << std::endl;
-    }
 
     Json jsonMessage;
     try
@@ -672,7 +653,15 @@ void uavos::comm::CUavosModulesManager::parseIntermoduleMessage (const char * fu
         return ;
     }
 
-    const bool is_binary =  !(full_message[full_message_length-1]==125 || (full_message[full_message_length-2]==125));
+    
+    const std::size_t first_string_length = strlen (full_message);
+
+    // IMPORTANT
+    // criteria: end of string part (json) is not end of the whole received data.
+    // -1 is used because there is always '/0' after the string.
+    // so if message is binary then you need to remobe the last character from the message
+    const bool is_binary =  !(first_string_length == full_message_length-1);
+    std::size_t actual_useful_size = is_binary?full_message_length-1:full_message_length;
     
     #ifdef DEBUG
     #ifdef DEBUG_MSG        
@@ -684,7 +673,9 @@ void uavos::comm::CUavosModulesManager::parseIntermoduleMessage (const char * fu
         || (!validateField(jsonMessage, ANDRUAV_PROTOCOL_MESSAGE_TYPE, Json::value_t::number_unsigned))
         )
     {
-        // bad message format
+        #ifdef DEBUG
+            std::cout<< _ERROR_CONSOLE_BOLD_TEXT_ << "BAD MESSAGE FORMAT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        #endif
         return ;
     }
     
@@ -795,37 +786,80 @@ void uavos::comm::CUavosModulesManager::parseIntermoduleMessage (const char * fu
 
         case TYPE_AndruavMessage_IMG:
         { 
+            /**
+             * @brief The message could be internal or not.
+             * if it is not internal then forward it directly to server.
+             * if it is INTERNAL MESSAGE then communicator module should 
+             * ADD LOCATION information to image if exists.
+             *
+             */
             if (!intermodule_msg)
             {
-                const char * binary_message = (char *)(memchr (full_message, 0x0, full_message_length))+1;
-                int binary_length = binary_message==0?0:(full_message_length - (binary_message - full_message +1))-1;
-                saveBinaryToFile (binary_message, binary_length, "img.jpg");
-                andruav_servers::CAndruavCommServer::getInstance().API_sendBinaryCMD(target_id, mt, &binary_message[1], binary_length, Json());   
-
+                andruav_servers::CAndruavCommServer& andruavCommServer = andruav_servers::CAndruavCommServer::getInstance();
+                andruavCommServer.sendMessageToCommunicationServer (full_message, actual_useful_size, is_system, is_binary, target_id, mt, ms);
+        
                 break;
             }
+            
+            std::size_t binary_length = actual_useful_size - first_string_length;
+            
+            
             
             CAndruavUnitMe& m_andruavMe = CAndruavUnitMe::getInstance();
             ANDRUAV_UNIT_LOCATION&  location_info = m_andruavMe.getUnitLocationInfo();
 
+            Json msg_cmd = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
+            const uint64_t now = get_time_usec();
             if (location_info.is_valid)
             {
                 // Generate message part ANDRUAV_PROTOCOL_MESSAGE_CMD
-                Json msg_cmd = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
                 msg_cmd["prv"] = std::string ("gps");
                 msg_cmd["lat"] = location_info.latitude;
                 msg_cmd["lng"] = location_info.longitude;
                 msg_cmd["alt"] = location_info.altitude;
-                msg_cmd["tim"] = get_time_usec();
-                
-                // binary_message is the image if exists.
-                const char * binary_message = (char *)(memchr (full_message, 0x0, full_message_length));
-                int binary_length = binary_message==0?0:(full_message_length - (binary_message - full_message +1));
-                
-                andruav_servers::CAndruavCommServer::getInstance().API_sendBinaryCMD(target_id, mt, binary_message, binary_length, msg_cmd); 
-
-                // binary_message_new.release();
+                msg_cmd["tim"] = now;
             }
+            else
+            {
+                //msg_cmd["prv"] null means not source.
+                msg_cmd["lat"] = 0;
+                msg_cmd["lng"] = 0;
+                msg_cmd["alt"] = 0;
+                msg_cmd["tim"] = now;
+            }
+
+            uavos::CConfigFile& cConfigFile = uavos::CConfigFile::getInstance();
+            const Json_de& jsonConfig = cConfigFile.GetConfigJSON();
+    
+            if (jsonConfig.contains("images") == true) 
+            {
+                const Json_de json_image = jsonConfig["images"];
+
+                if ((!json_image.contains("save_images")) 
+                    || (json_image["save_images"].get<bool>()==true)) 
+                {
+                    std::string file_path = "./";
+                    if (validateField(json_image,"media_folder", Json_de::value_t::string))
+                    {
+                        file_path = json_image["media_folder"].get<std::string>();
+                    }
+                    
+                    std::ostringstream oss;
+                    oss << file_path << "/"
+                        << "img_"  <<  get_time_string()
+                        << "_lat_" << location_info.latitude
+                        << "_lng_" << location_info.longitude
+                        << "_alt_" << int(location_info.altitude / 1000)
+                        << ".jpg";
+
+                    std::string file_name = oss.str();
+
+   
+                    saveBinaryToFile (&full_message[first_string_length+1], binary_length-1, file_name);
+                }
+            }
+            andruav_servers::CAndruavCommServer& andruavCommServer = andruav_servers::CAndruavCommServer::getInstance();
+            andruavCommServer.sendMessageToCommunicationServer (full_message, full_message_length, is_system, is_binary, target_id, mt, msg_cmd);
         }
         break;
 
@@ -837,21 +871,21 @@ void uavos::comm::CUavosModulesManager::parseIntermoduleMessage (const char * fu
                 that I should send to it myown mac.
             */
                 
-                Json msg_cmd = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
-                std::cout << _INFO_CONSOLE_TEXT << "P2P ###:" << msg_cmd <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+            Json msg_cmd = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
+            std::cout << _INFO_CONSOLE_TEXT << "P2P ###:" << msg_cmd <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
 	
-                switch (msg_cmd["a"].get<int>())
-                {
-                    case P2P_ACTION_CONNECT_TO_MAC:
-                        if (validateField(msg_cmd,"int_prty", Json::value_t::string))
-                        {
-                            andruav_servers::CAndruavFacade::getInstance().API_P2P_connectToMeshOnMyMac(
-                                    msg_cmd["int_prty"]
-                                ); 
+            switch (msg_cmd["a"].get<int>())
+            {
+                case P2P_ACTION_CONNECT_TO_MAC:
+                    if (validateField(msg_cmd,"int_prty", Json::value_t::string))
+                    {
+                        andruav_servers::CAndruavFacade::getInstance().API_P2P_connectToMeshOnMyMac(
+                                msg_cmd["int_prty"]
+                            ); 
                             
-                        }
-                    break;
-                }
+                    }
+                break;
+            }
                 
         }
         break;
@@ -862,14 +896,14 @@ void uavos::comm::CUavosModulesManager::parseIntermoduleMessage (const char * fu
             uavos::andruav_servers::CP2P& cP2P = uavos::andruav_servers::CP2P::getInstance();
             
             // Search for char '0' and then the binary message is the bytes after it.
-            const char* binary_message = std::find(full_message, full_message + full_message_length, '\0');
-            std::size_t binary_length = binary_message == (full_message + full_message_length) ? 0 : (full_message + full_message_length) - (binary_message + 1);
+            //const char* binary_message = std::find(full_message, full_message + full_message_length, '\0');
+            //std::size_t binary_length = binary_message == (full_message + full_message_length) ? 0 : (full_message + full_message_length) - (binary_message + 1);
             // Create a vector to store the binary data
-            std::vector<char> binary_data(binary_message + 1, binary_message + 1 + binary_length);
+            //std::vector<char> binary_data(binary_message + 1, binary_message + 1 + binary_length);
 
 
             //bool res = cP2P.processForwardSwarmMessage(target_id, binary_data.data(), binary_data.size());
-            bool res = cP2P.processForwardSwarmMessage(target_id, full_message, full_message_length);
+            bool res = cP2P.processForwardSwarmMessage(target_id, full_message, actual_useful_size);
             if (!res)
             {
                 // forward the messages normally through the server.
@@ -886,7 +920,7 @@ void uavos::comm::CUavosModulesManager::parseIntermoduleMessage (const char * fu
             
             if (jsonMessage.contains(INTERMODULE_MODULE_KEY)!=false) // backward compatibility
             {
-                processIncommingServerMessage (target_id, mt, full_message, full_message_length, jsonMessage[INTERMODULE_MODULE_KEY].get<std::string>());
+                processIncommingServerMessage (target_id, mt, full_message, actual_useful_size, jsonMessage[INTERMODULE_MODULE_KEY].get<std::string>());
             }
 
             if (intermodule_msg)
@@ -903,7 +937,7 @@ void uavos::comm::CUavosModulesManager::parseIntermoduleMessage (const char * fu
 
 
             andruav_servers::CAndruavCommServer& andruavCommServer = andruav_servers::CAndruavCommServer::getInstance();
-            andruavCommServer.sendMessageToCommunicationServer (full_message, full_message_length, is_system, is_binary, target_id, mt, ms);
+            andruavCommServer.sendMessageToCommunicationServer (full_message, actual_useful_size, is_system, is_binary, target_id, mt, ms);
         }
         break;
     }
