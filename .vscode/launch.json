@@ -41,6 +41,25 @@
                     "ignoreFailures": true
                 }
             ]
+        },
+        {
+            "name": "receiver_adapter",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/client/bin/receiver_adapter",
+            "args": ["rx","60000","15000"],
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}/src/client/",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing -gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
         }
 
     ]

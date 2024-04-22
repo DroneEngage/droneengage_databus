@@ -59,6 +59,12 @@
         "typeinfo": "cpp",
         "valarray": "cpp",
         "*.ipp": "cpp",
-        "fstream": "cpp"
+        "fstream": "cpp",
+        "queue": "cpp",
+        "bitset": "cpp",
+        "codecvt": "cpp",
+        "optional": "cpp",
+        "iomanip": "cpp",
+        "__nullptr": "cpp"
     }
 }
