@@ -6,7 +6,7 @@
 #include <unistd.h>
 
 #include "../helpers/colors.hpp"
-#include "../helpers/json.hpp"
+#include "../helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
 
 #include "udpClient.hpp"
@@ -15,35 +15,35 @@ using Json_de = nlohmann::json;
 #define MAXLINE 0xffff 
 #endif
 
-#define MAX_UDP_DATABUS_PACKET_SIZE 8192
 
-const int chunkSize = MAX_UDP_DATABUS_PACKET_SIZE; 
+
+
 
 uavos::comm::CUDPClient::~CUDPClient ()
 {
     
     #ifdef DEBUG
-	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: ~CUDPClient" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT_ << "DEBUG: ~CUDPClient" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
     if (m_stopped_called == false)
     {
         #ifdef DEBUG
-	    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: ~CUDPClient" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+	    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT_ << "DEBUG: ~CUDPClient" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         #endif
 
         stop();
     }
 
     #ifdef DEBUG
-	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: ~CUDPClient" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT_ << "DEBUG: ~CUDPClient" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
     // destroy mutex
 	//pthread_mutex_destroy(&m_lock);
 
     #ifdef DEBUG
-	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: ~CUDPClient" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT_ << "DEBUG: ~CUDPClient" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
 }
@@ -56,13 +56,20 @@ uavos::comm::CUDPClient::~CUDPClient ()
  * @param host uavos-module listening ips default is 0.0.0.0
  * @param listenningPort uavos-module listerning port.
  */
-void uavos::comm::CUDPClient::init (const char * targetIP, int broadcatsPort, const char * host, int listenningPort)
+void uavos::comm::CUDPClient::init (const char * targetIP, int broadcatsPort, const char * host, int listenningPort, int chunkSize)
 {
 
     // pthread initialization
 	m_thread = pthread_self(); // get pthread ID
 	pthread_setschedprio(m_thread, SCHED_FIFO); // setting priority
 
+    if (m_chunkSize >= MAX_UDP_DATABUS_PACKET_SIZE)
+    {
+        perror("invalid udp packet size."); 
+        exit(EXIT_FAILURE); 
+    }
+
+    m_chunkSize = chunkSize;
 
     // Creating socket file descriptor 
     if ( (m_SocketFD = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) { 
@@ -88,13 +95,16 @@ void uavos::comm::CUDPClient::init (const char * targetIP, int broadcatsPort, co
     // Bind the socket with the server address 
     if (bind(m_SocketFD, (const struct sockaddr *)m_ModuleAddress, sizeof(struct sockaddr_in))>0) 
     { 
-        std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "UDP Listener  " << _ERROR_CONSOLE_TEXT_ << " BAD BIND: " << host << ":" << listenningPort << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout << _LOG_CONSOLE_BOLD_TEXT_<< "UDP Listener  " << _ERROR_CONSOLE_TEXT_ << " BAD BIND: " << host << ":" << listenningPort << _NORMAL_CONSOLE_TEXT_ << std::endl;
         exit(-1) ;
     } 
 
-    std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "UDP Listener at " << _INFO_CONSOLE_TEXT << host << ":" << listenningPort << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _LOG_CONSOLE_BOLD_TEXT_ << "UDP Listener at " << _INFO_CONSOLE_TEXT_ << host << ":" << listenningPort << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
-    std::cout << _LOG_CONSOLE_TEXT_BOLD_<< "Expected Comm Server at " <<  _INFO_CONSOLE_TEXT << targetIP << ":" <<  broadcatsPort << _NORMAL_CONSOLE_TEXT_ << std::endl;  
+    std::cout << _LOG_CONSOLE_BOLD_TEXT_ << "Expected Comm Server at " <<  _INFO_CONSOLE_TEXT_ << targetIP << ":" <<  broadcatsPort << _NORMAL_CONSOLE_TEXT_ << std::endl;  
+
+    std::cout << _LOG_CONSOLE_BOLD_TEXT_ << "UDP Max Packet Size " << _INFO_CONSOLE_TEXT_ << chunkSize <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+
 }
 
 void uavos::comm::CUDPClient::start()
@@ -126,7 +136,7 @@ void uavos::comm::CUDPClient::stop()
 {
 
     #ifdef DEBUG
-	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Stop" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT_ << "DEBUG: Stop" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
     m_stopped_called = true;
@@ -139,7 +149,7 @@ void uavos::comm::CUDPClient::stop()
     }
     
     #ifdef DEBUG
-	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Stop" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT_ << "DEBUG: Stop" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
     try
@@ -157,7 +167,7 @@ void uavos::comm::CUDPClient::stop()
         delete m_CommunicatorModuleAddress;
 
         #ifdef DEBUG
-	    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Stop" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+	    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT_ << "DEBUG: Stop" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         #endif
     }
     catch(const std::exception& e)
@@ -166,7 +176,7 @@ void uavos::comm::CUDPClient::stop()
     }
 
     #ifdef DEBUG
-	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Stop" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT_ << "DEBUG: Stop" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
     
@@ -244,7 +254,7 @@ void uavos::comm::CUDPClient::InternalReceiverEntry()
     }
 
     #ifdef DDEBUG
-        std::cout << __FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  " << _LOG_CONSOLE_TEXT
+        std::cout << __FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  " << _LOG_CONSOLE_TEXT_
               << "DEBUG: InternalReceiverEntry EXIT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 }
@@ -282,7 +292,7 @@ void uavos::comm::CUDPClient::InternelSenderIDEntry()
     }
 
     #ifdef DDEBUG
-        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: InternelSenderIDEntry EXIT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT_ << "DEBUG: InternelSenderIDEntry EXIT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
 }
@@ -300,12 +310,11 @@ void uavos::comm::CUDPClient::sendMSG (const char * msg, const int length)
     {
         int remainingLength = length;
         int offset = 0;
-        uint16_t chunk_number = 0;
+        int chunk_number = 0;
 
         while (remainingLength > 0)
         {
-            // TODO: BUG HERE WHEN PACKET = chunkSize
-            int chunkLength = std::min(chunkSize, remainingLength);
+            int chunkLength = std::min(m_chunkSize, remainingLength);
             remainingLength -= chunkLength;
             
             // Create a new message with the chunk size + sizeof(uint8_t)
@@ -347,7 +356,7 @@ void uavos::comm::CUDPClient::sendMSG (const char * msg, const int length)
     }
     catch (const std::exception& e)
     {
-        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: InternelSenderIDEntry EXIT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT_ << "DEBUG: InternelSenderIDEntry EXIT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         std::cerr << e.what() << '\n';
     }
     

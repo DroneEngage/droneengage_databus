@@ -4,7 +4,7 @@
 #include <random>
 #include <thread>
 
-#include "../src/helpers/json.hpp"
+#include "../src/helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
 
 #include "../src/helpers/colors.hpp"
@@ -83,7 +83,7 @@ void processMessages() {
         
 
         #ifdef DEBUG        
-            //std::cout << _LOG_CONSOLE_TEXT << "RX MSG#" << _INFO_CONSOLE_BOLD_TEXT << messages_processed_counter << ":len " << std::to_string(frontMessage.size()) << ":" << frontMessage.data() <<   _NORMAL_CONSOLE_TEXT_ << std::endl;
+            //std::cout << _LOG_CONSOLE_TEXT_ << "RX MSG#" << _INFO_CONSOLE_BOLD_TEXT << messages_processed_counter << ":len " << std::to_string(frontMessage.size()) << ":" << frontMessage.data() <<   _NORMAL_CONSOLE_TEXT_ << std::endl;
         #endif
         lock.unlock();
         
@@ -176,8 +176,15 @@ void sendMsg (int value)
 
 int main (int argc, char *argv[])
 {
+    std::cout << _INFO_CONSOLE_BOLD_TEXT << "This module can be used as follows:"  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "./receiver_adapter sender_mod 60000" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _INFO_CONSOLE_BOLD_TEXT << "It will connect to a running DroneEngage communicator on port 60000 and receives messages of type TYPE_AndruavMessage_USER_RANGE_START."  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _INFO_CONSOLE_BOLD_TEXT << "You can send these messages using sender_adapter."  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << "Press any key to continue ..." << std::endl;
+    std::cin.get();
+
     if (argc < 3) {
-        std::cerr << _INFO_CONSOLE_BOLD_TEXT << "Insufficient arguments. Usage: app module_name broker_port(60000) [process rate(default-1000)]" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cerr << _INFO_CONSOLE_BOLD_TEXT << "Insufficient arguments. Usage: app module_name broker_port(60000) " << _NORMAL_CONSOLE_TEXT_ << std::endl;
         return 1;
     }
     
@@ -190,7 +197,7 @@ int main (int argc, char *argv[])
 
     std::string module_id = generateRandomModuleID();
     
-    std::cout << _INFO_CONSOLE_TEXT << "Receiver Rate-Adapter " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _INFO_CONSOLE_TEXT_ << "Receiver Rate-Adapter " << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
     // Define a Module
     cModule.defineModule(
@@ -209,7 +216,7 @@ int main (int argc, char *argv[])
     cModule.setHardware("123456", ENUM_HARDWARE_TYPE::HARDWARE_TYPE_CPU);
     cModule.setMessageOnReceive (&onReceive);
 
-    cModule.init("0.0.0.0",target_port, "0.0.0.0", 70024);
+    cModule.init("0.0.0.0",target_port, "0.0.0.0", 70024, DEFAULT_UDP_DATABUS_PACKET_SIZE);
     
     std::cout << "RUNNING " << std::endl; 
     

@@ -31,7 +31,6 @@
 
 
 
-
 // Communication Commands
 /**
  * @brief Group boradcast
@@ -109,7 +108,7 @@
 #define TYPE_AndruavMessage_GPS                         1002
 #define TYPE_AndruavMessage_POWER                       1003
 #define TYPE_AndruavMessage_ID 	                        1004
-#define TYPE_AndruavMessage_RemoteExecute 		        1005
+#define TYPE_AndruavMessage_RemoteExecute 		        1005     
 #define TYPE_AndruavMessage_IMG                         1006     
 #define TYPE_AndruavMessage_Error                       1008    
 #define TYPE_AndruavMessage_FlightControl               1010
@@ -230,9 +229,17 @@
 
 
 // P2P Parameters
+
 #define P2P_ACTION_RESTART_TO_MAC                           0
 #define P2P_ACTION_CONNECT_TO_MAC                           1
 #define P2P_ACTION_CANDICATE_MAC                            2
+#define P2P_ACTION_SCAN_NETWORK                             3
+/**
+ * @brief this is different from P2P_ACTION_CONNECT_TO_MAC 
+ * in that it does not require direct access 
+ * or specifies who is parent to whom.
+ */
+#define P2P_ACTION_ACCESS_TO_MAC                            4
 
 #define P2P_STATUS_CONNECTED_TO_MAC                         0
 #define P2P_STATUS_DISCONNECTED_FROM_MAC                    1

@@ -39,7 +39,7 @@ static std::mutex g_i_mutex_process;
 void uavos::comm::CUavosModulesManager::onReceive (const char * message, int len, struct sockaddr_in *  sock)
 {
     #ifdef DDEBUG
-        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "#####DEBUG:" << message << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT_ << "#####DEBUG:" << message << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
     parseIntermoduleMessage(message, len, sock);
@@ -50,7 +50,7 @@ void uavos::comm::CUavosModulesManager::onReceive (const char * message, int len
 
 bool uavos::comm::CUavosModulesManager::init (const std::string host, int listenningPort)
 {
-    std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG:" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT_ << "DEBUG:" << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
     cUDPClient.init (host.c_str(), listenningPort);
 
@@ -63,7 +63,7 @@ bool uavos::comm::CUavosModulesManager::init (const std::string host, int listen
 void uavos::comm::CUavosModulesManager::uninit ()
 {
     #ifdef DEBUG
-	    std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Stop Threads Killed" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+	    std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT_ << "DEBUG: Stop Threads Killed" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
     cUDPClient.stop();
@@ -293,7 +293,7 @@ void uavos::comm::CUavosModulesManager::updateCameraList(const std::string& modu
 {
 
     #ifdef DEBUG
-        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: updateCameraList " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT_ << "DEBUG: updateCameraList " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
     // Check if Module "Camera_ModuleName" is listed.
@@ -302,7 +302,7 @@ void uavos::comm::CUavosModulesManager::updateCameraList(const std::string& modu
     {
         // Module Not found in camera list
         #ifdef DEBUG
-            std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: updateCameraList // Module Not found in camera list" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT_ << "DEBUG: updateCameraList // Module Not found in camera list" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         #endif
 
         std::map <std::string, std::unique_ptr<MODULE_CAMERA_ENTRY>> *pcamera_entries = new std::map <std::string, std::unique_ptr<MODULE_CAMERA_ENTRY>>();
@@ -456,14 +456,14 @@ void uavos::comm::CUavosModulesManager::checkLicenseStatus (MODULE_ITEM_TYPE * m
     {
         if (auth.doValidateHardware(module_item->hardware_serial, module_item->hardware_type))
         {
-            std::cout << std::endl << _LOG_CONSOLE_TEXT_BOLD_ << "Module License " << _SUCCESS_CONSOLE_TEXT_ << "OK " <<  _SUCCESS_CONSOLE_BOLD_TEXT_ << module_item->module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            std::cout << std::endl << _LOG_CONSOLE_BOLD_TEXT_ << "Module License " << _SUCCESS_CONSOLE_TEXT_ << "OK " <<  _SUCCESS_CONSOLE_BOLD_TEXT_ << module_item->module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
             PLOG(plog::info)<< "Module License OK: " << module_item->module_id ;
 
             module_item->licence_status = ENUM_LICENCE::LICENSE_VERIFIED_OK;
         }
         else
         {
-            std::cout << std::endl << _LOG_CONSOLE_TEXT_BOLD_ << "Module License " << _ERROR_CONSOLE_BOLD_TEXT_ <<  "INVALID " << module_item->module_id<< _NORMAL_CONSOLE_TEXT_ << std::endl;
+            std::cout << std::endl << _LOG_CONSOLE_BOLD_TEXT_ << "Module License " << _ERROR_CONSOLE_BOLD_TEXT_ <<  "INVALID " << module_item->module_id<< _NORMAL_CONSOLE_TEXT_ << std::endl;
             PLOG(plog::error)<< "Module License Invalid: " << module_item->module_id ;
 
             module_item->licence_status = ENUM_LICENCE::LICENSE_VERIFIED_BAD;
@@ -491,7 +491,7 @@ bool uavos::comm::CUavosModulesManager::handleModuleRegistration (const Json& ms
 {
 
     #ifdef DDEBUG
-        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: handleModuleRegistration " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT_ << "DEBUG: handleModuleRegistration " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
     const std::lock_guard<std::mutex> lock(g_i_mutex);
@@ -872,7 +872,7 @@ void uavos::comm::CUavosModulesManager::parseIntermoduleMessage (const char * fu
             */
                 
             Json msg_cmd = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
-            std::cout << _INFO_CONSOLE_TEXT << "P2P ###:" << msg_cmd <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+            std::cout << _INFO_CONSOLE_TEXT_ << "P2P ###:" << msg_cmd <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
 	
             switch (msg_cmd["a"].get<int>())
             {
@@ -980,7 +980,7 @@ void uavos::comm::CUavosModulesManager::processIncommingServerMessage (const std
     const std::lock_guard<std::mutex> lock(g_i_mutex_process);
     #ifdef DEBUG
     #ifdef DEBUG_MSG        
-        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: processIncommingServerMessage " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT_ << "DEBUG: processIncommingServerMessage " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     #endif
 
@@ -1032,7 +1032,7 @@ void uavos::comm::CUavosModulesManager::forwardMessageToModule ( const char * me
 {
     #ifdef DEBUG
     #ifdef DEBUG_MSG        
-        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: forwardMessageToModule: " << message << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT_ << "DEBUG: forwardMessageToModule: " << message << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     #endif
     
@@ -1128,7 +1128,7 @@ void uavos::comm::CUavosModulesManager::handleOnAndruavServerConnection (const i
 {
     #ifdef DEBUG
     #ifdef DEBUG_MSG        
-        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: handleOnAndruavServerConnection " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT_ << "DEBUG: handleOnAndruavServerConnection " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     #endif
 

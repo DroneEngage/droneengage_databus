@@ -2,7 +2,7 @@
 #include <string>
 #include <random>
 
-#include "../src/helpers/json.hpp"
+#include "../src/helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
 
 #include "../src/helpers/colors.hpp"
@@ -79,8 +79,14 @@ void sendMsg ()
 int main (int argc, char *argv[])
 {
 
+    std::cout << _INFO_CONSOLE_BOLD_TEXT << "This module can be used as follows:"  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "./client sample_mod 60000 61111" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _INFO_CONSOLE_BOLD_TEXT << "If drone engage is running on port 60000 it will connect to it and appears in WebClient Details tab as a module named sample_mod."  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << "Press any key to continue ..." << std::endl;
+    std::cin.get();
+
     if (argc < 4) {
-        std::cerr << _INFO_CONSOLE_BOLD_TEXT << "Insufficient arguments. Usage: app module_name broker_port(60000) listen_port(60003)" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout << _INFO_CONSOLE_BOLD_TEXT << "Insufficient arguments. Usage: app module_name broker_port(60000) listen_port(60003)" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         return 1;
     }
     
@@ -90,7 +96,7 @@ int main (int argc, char *argv[])
     
     std::string module_id = generateRandomModuleID();
     
-    std::cout << _INFO_CONSOLE_TEXT << "Client Module-Started " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _INFO_CONSOLE_TEXT_ << "Client Module-Started " << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
     // Define a Module
     cModule.defineModule(
@@ -108,7 +114,7 @@ int main (int argc, char *argv[])
     // Add Hardware Verification Info to be verified by server. [OPTIONAL]
     cModule.setHardware("123456", ENUM_HARDWARE_TYPE::HARDWARE_TYPE_CPU);
     
-    cModule.init("0.0.0.0",target_port, "0.0.0.0", listen_port);
+    cModule.init("0.0.0.0",target_port, "0.0.0.0", listen_port, DEFAULT_UDP_DATABUS_PACKET_SIZE);
     
     std::cout << "Client Module RUNNING " << std::endl; 
     

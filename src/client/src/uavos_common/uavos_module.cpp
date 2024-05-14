@@ -24,10 +24,10 @@ void uavos::comm::CModule::defineModule (
 }
 
 
-bool uavos::comm::CModule::init (const std::string targetIP, int broadcatsPort, const std::string host, int listenningPort)
+bool uavos::comm::CModule::init (const std::string targetIP, int broadcatsPort, const std::string host, int listenningPort,  int chunkSize)
 {
     // UDP Server
-    cUDPClient.init(targetIP.c_str(), broadcatsPort, host.c_str() ,listenningPort);
+    cUDPClient.init(targetIP.c_str(), broadcatsPort, host.c_str() ,listenningPort, chunkSize);
     
     createJSONID(true);
     cUDPClient.start();
@@ -196,32 +196,48 @@ void uavos::comm::CModule::onReceive (const char * message, int len)
     static bool bFirstReceived = false;
         
     #ifdef DDEBUG        
-        std::cout << _INFO_CONSOLE_TEXT << "RX MSG: :len " << std::to_string(len) << ":" << message <<   _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout << _INFO_CONSOLE_TEXT_ << "RX MSG: :len " << std::to_string(len) << ":" << message <<   _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
     try
     {
         /* code */
         Json_de jMsg = Json_de::parse(message);
-        const int messageType = jMsg[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
+        
+        #ifdef DDEBUG
+        std::cout << _INFO_CONSOLE_TEXT_ << "RX MSG: jMsg" << jMsg.dump() <<   _NORMAL_CONSOLE_TEXT_ << std::endl;
+        #endif
 
+        if (!jMsg.contains(ANDRUAV_PROTOCOL_MESSAGE_TYPE)) return ;
+        
+        if (!jMsg.contains(INTERMODULE_ROUTING_TYPE)) return ;
+        
+        
         if (std::strcmp(jMsg[INTERMODULE_ROUTING_TYPE].get<std::string>().c_str(),CMD_TYPE_INTERMODULE)==0)
         {
+            if (!jMsg.contains(ANDRUAV_PROTOCOL_MESSAGE_CMD)) return ;
+            
             const Json_de cmd = jMsg[ANDRUAV_PROTOCOL_MESSAGE_CMD];
             
 
+            const int messageType = jMsg[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
             switch (messageType)
             {
             case TYPE_AndruavModule_ID:
                 {
                     const Json_de moduleID = cmd ["f"];
+                    
+                    if (!cmd.contains("f")) return ;
+                    if (!moduleID.contains(ANDRUAV_PROTOCOL_SENDER)) return ;
+                    if (!moduleID.contains(ANDRUAV_PROTOCOL_GROUP_ID)) return ;
+            
                     m_party_id = std::string(moduleID[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
                     m_group_id = std::string(moduleID[ANDRUAV_PROTOCOL_GROUP_ID].get<std::string>());
                     
                     if (!bFirstReceived)
                     { 
                         // tell server you dont need to send ID again.
-                        std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << " ** Communicator Server Found" << _SUCCESS_CONSOLE_TEXT_ << ": m_party_id(" << _INFO_CONSOLE_TEXT << m_party_id << _SUCCESS_CONSOLE_TEXT_ << ") m_group_id(" << _INFO_CONSOLE_TEXT << m_group_id << _SUCCESS_CONSOLE_TEXT_ << ")" <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+                        std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << " ** Communicator Server Found" << _SUCCESS_CONSOLE_TEXT_ << ": m_party_id(" << _INFO_CONSOLE_TEXT_ << m_party_id << _SUCCESS_CONSOLE_TEXT_ << ") m_group_id(" << _INFO_CONSOLE_TEXT_ << m_group_id << _SUCCESS_CONSOLE_TEXT_ << ")" <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
                         createJSONID(false);
                         bFirstReceived = true;
                     }
@@ -242,6 +258,9 @@ void uavos::comm::CModule::onReceive (const char * message, int len)
                 default:
                     break;
             }
+            
+            
+
             
         }
 

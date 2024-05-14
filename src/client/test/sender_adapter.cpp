@@ -2,7 +2,7 @@
 #include <string>
 #include <random>
 
-#include "../src/helpers/json.hpp"
+#include "../src/helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
 
 #include "../src/helpers/colors.hpp"
@@ -47,14 +47,14 @@ void onReceive (const char * message, int len, Json_de jMsg)
     const int msgid = jMsg[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
 
     #ifdef DDEBUG        
-        std::cout << _LOG_CONSOLE_TEXT << "RX MSG:" << msgid << ":len: " << std::to_string(len) << ":" << message <<   _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout << _LOG_CONSOLE_TEXT_ << "RX MSG:" << msgid << ":len: " << std::to_string(len) << ":" << message <<   _NORMAL_CONSOLE_TEXT_ << std::endl;
         std::cout << jMsg.dump() << std::endl;
     #endif
 
     if (msgid == TYPE_CUSTOM_CHANGE_RATE)
     {
         const int delta_delay = jMsg["ms"]["value"].get<int>();
-        std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "delta_delay:" << _INFO_CONSOLE_BOLD_TEXT << delta_delay << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout << _LOG_CONSOLE_BOLD_TEXT_ << "delta_delay:" << _INFO_CONSOLE_BOLD_TEXT << delta_delay << _NORMAL_CONSOLE_TEXT_ << std::endl;
         if (delta_delay==0) 
         {
             delay = delay / 2;
@@ -92,7 +92,14 @@ void sendMsg ()
 int main (int argc, char *argv[])
 {
 
-    if (argc < 3) {
+    std::cout << _INFO_CONSOLE_BOLD_TEXT << "This module can be used as follows:"  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "./sender_adapter sender_mod 60000" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _INFO_CONSOLE_BOLD_TEXT << "It will connect to a running DroneEngage communicator on port 60000 and send messages of type TYPE_AndruavMessage_USER_RANGE_START."  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _INFO_CONSOLE_BOLD_TEXT << "You can catch these messages using receiver_adapter."  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << "Press any key to continue ..." << std::endl;
+    std::cin.get();
+
+    if (argc < 4) {
         std::cerr << _INFO_CONSOLE_BOLD_TEXT << "Insufficient arguments. Usage: app module_name broker_port(60000) [rate(default 1000)]" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         return 1;
     }
@@ -125,13 +132,13 @@ int main (int argc, char *argv[])
     cModule.setHardware("123456", ENUM_HARDWARE_TYPE::HARDWARE_TYPE_CPU);
     cModule.setMessageOnReceive (&onReceive);
 
-    cModule.init("0.0.0.0",target_port, "0.0.0.0", 70034);
+    cModule.init("0.0.0.0",target_port, "0.0.0.0", 70034, DEFAULT_UDP_DATABUS_PACKET_SIZE);
     
     std::cout << "RUNNING " << std::endl; 
     
     while (!exit_me)
     {
-        std::cout << _LOG_CONSOLE_TEXT << "Next Message in " << _INFO_CONSOLE_BOLD_TEXT << delay << _LOG_CONSOLE_TEXT << " ms" << _NORMAL_CONSOLE_TEXT_ <<  std::endl; 
+        std::cout << _LOG_CONSOLE_TEXT_ << "Next Message in " << _INFO_CONSOLE_BOLD_TEXT << delay << _LOG_CONSOLE_TEXT_ << " ms" << _NORMAL_CONSOLE_TEXT_ <<  std::endl; 
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
         
 

@@ -48,7 +48,7 @@ CModule& cModule= CModule::getInstance();
 void onReceive (const char * message, int len, Json_de jMsg)
 {
     #ifdef DEBUG        
-        std::cout << _LOG_CONSOLE_TEXT << "RX MSG: :len " << std::to_string(len) << ":" << message <<   _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout << _LOG_CONSOLE_TEXT_ << "RX MSG: :len " << std::to_string(len) << ":" << message <<   _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
     
@@ -57,7 +57,10 @@ void onReceive (const char * message, int len, Json_de jMsg)
 int main (int argc, char *argv[])
 {
 
-    std::cout << _INFO_CONSOLE_TEXT << "HELLO " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _INFO_CONSOLE_BOLD_TEXT << "This module will subscribe in DroneEngage that runs on port 60000."  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _INFO_CONSOLE_BOLD_TEXT << "It will receive mavlink messages that is sent by mav link module."  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << "Press any key to continue ..." << std::endl;
+    std::cin.get();
 
     // Define a Module
     cModule.defineModule(
@@ -74,7 +77,7 @@ int main (int argc, char *argv[])
     cModule.setHardware("123456", ENUM_HARDWARE_TYPE::HARDWARE_TYPE_CPU);
     cModule.setMessageOnReceive (&onReceive);
     
-    cModule.init("0.0.0.0",60000,"0.0.0.0",70014);
+    cModule.init("0.0.0.0",60000,"0.0.0.0",70014, DEFAULT_UDP_DATABUS_PACKET_SIZE);
 
     while (!exit_me)
     {

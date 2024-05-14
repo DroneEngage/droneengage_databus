@@ -56,7 +56,7 @@ CModule& cModule= CModule::getInstance();
 void onReceive (const char * message, int len, Json_de jMsg)
 {
     #ifdef DEBUG        
-        std::cout << _LOG_CONSOLE_TEXT << "RX MSG: :len " << std::to_string(len) << ":" << message <<   _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout << _LOG_CONSOLE_TEXT_ << "RX MSG: :len " << std::to_string(len) << ":" << message <<   _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
     
@@ -65,7 +65,7 @@ void onReceive (const char * message, int len, Json_de jMsg)
 int main (int argc, char *argv[])
 {
 
-    std::cout << _INFO_CONSOLE_TEXT << "HELLO " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _INFO_CONSOLE_TEXT_ << "HELLO " << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
     // Define a Module
     cModule.defineModule(
@@ -81,7 +81,7 @@ int main (int argc, char *argv[])
     cModule.setHardware("123456", ENUM_HARDWARE_TYPE::HARDWARE_TYPE_CPU);
     cModule.setMessageOnReceive (&onReceive);
     
-    cModule.init("0.0.0.0",60000,"0.0.0.0",60013);
+    cModule.init("0.0.0.0",60000,"0.0.0.0",60013, DEFAULT_UDP_DATABUS_PACKET_SIZE);
     
 
     while (!exit_me)
