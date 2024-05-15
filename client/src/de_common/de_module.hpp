@@ -1,5 +1,5 @@
-#ifndef UAVOS_MODULE_H
-#define UAVOS_MODULE_H
+#ifndef de_module_H
+#define de_module_H
 
 
 #include <ctime>
@@ -27,7 +27,7 @@ typedef enum {
 #define MODULE_CLASS_GENERIC                    "gen"
 
 
-namespace uavos
+namespace de
 {
 
 namespace comm
@@ -240,12 +240,12 @@ namespace comm
             CUDPClient cUDPClient; 
 
             /**
-             * @brief UAVOS Current m_party_id read from communicator
+             * @brief DRONE ENGAGE Current m_party_id read from communicator
              * This is important communication part to identify myself and other senders.
              */
             std::string  m_party_id;
             /**
-             * @brief UAVOS Current m_group_id read from communicator
+             * @brief DRONE ENGAGE Current m_group_id read from communicator
              * This is important communication part to identify myself and other senders.
              */
             std::string  m_group_id;

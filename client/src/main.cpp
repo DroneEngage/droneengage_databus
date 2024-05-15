@@ -8,13 +8,13 @@
  **/
 
 
-#include "../../helpers/colors.hpp"
-#include "./uavos_common/uavos_module.hpp"
+#include "helpers/colors.hpp"
+#include "de_common/de_module.hpp"
 
 
 
-using namespace uavos;
-using namespace uavos::comm;
+using namespace de;
+using namespace de::comm;
 bool exit_me = false;
 
 #define MESSAGE_FILTER {TYPE_AndruavMessage_RemoteExecute,\

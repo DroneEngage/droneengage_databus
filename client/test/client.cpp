@@ -1,13 +1,18 @@
+#include <iostream>
+#include <string>
+#include <random>
 
+#include "../src/helpers/json_nlohmann.hpp"
+using Json_de = nlohmann::json;
 
 #include "../src/helpers/colors.hpp"
-#include "../src/uavos_common/uavos_module.hpp"
+#include "../src/de_common/de_module.hpp"
 
 
 
 
-using namespace uavos;
-using namespace uavos::comm;
+using namespace de;
+using namespace de::comm;
 bool exit_me = false;
 
 #define MESSAGE_FILTER {TYPE_AndruavMessage_RemoteExecute,\
@@ -45,44 +50,79 @@ bool exit_me = false;
 
 CModule& cModule= CModule::getInstance(); 
 
-void onReceive (const char * message, int len, Json_de jMsg)
+std::string generateRandomModuleID() {
+    std::random_device rd;
+    std::mt19937 generator(rd());
+    std::uniform_int_distribution<char> distribution('0', '9');
+    
+    std::string moduleID;
+    for (int i = 0; i < 12; ++i) {
+        moduleID += distribution(generator);
+    }
+    
+    return moduleID;
+}
+
+
+void sendMsg ()
 {
-    #ifdef DEBUG        
-        std::cout << _LOG_CONSOLE_TEXT_ << "RX MSG: :len " << std::to_string(len) << ":" << message <<   _NORMAL_CONSOLE_TEXT_ << std::endl;
-    #endif
-    
-    
+    Json_de message=
+    {
+        {"t", "THIS IS A TEST MESSAGE"},
+
+        {"long", "Received the likewise law graceful his. Nor might set along charm now equal green. Pleased yet equally correct colonel not one. Say anxious carried compact conduct sex general nay certain. Mrs for recommend exquisite household eagerness preserved now. My improved honoured he am ecstatic quitting greatest formerly."}
+    };
+
+    cModule.sendJMSG("", message, TYPE_AndruavMessage_DUMMY, true);
 }
 
 int main (int argc, char *argv[])
 {
 
-    std::cout << _INFO_CONSOLE_BOLD_TEXT << "This module will subscribe in DroneEngage that runs on port 60000."  << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    std::cout << _INFO_CONSOLE_BOLD_TEXT << "It will receive mavlink messages that is sent by mav link module."  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _INFO_CONSOLE_BOLD_TEXT << "This module can be used as follows:"  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "./client sample_mod 60000 61111" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _INFO_CONSOLE_BOLD_TEXT << "If drone engage is running on port 60000 it will connect to it and appears in WebClient Details tab as a module named sample_mod."  << _NORMAL_CONSOLE_TEXT_ << std::endl;
     std::cout << "Press any key to continue ..." << std::endl;
     std::cin.get();
+
+    if (argc < 4) {
+        std::cout << _INFO_CONSOLE_BOLD_TEXT << "Insufficient arguments. Usage: app module_name broker_port(60000) listen_port(60003)" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        return 1;
+    }
+    
+    std::string module_name = argv[1];
+    int target_port = std::stoi(argv[2]);
+    int listen_port = std::stoi(argv[3]);
+    
+    std::string module_id = generateRandomModuleID();
+    
+    std::cout << _INFO_CONSOLE_TEXT_ << "Client Module-Started " << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
     // Define a Module
     cModule.defineModule(
         MODULE_CLASS_GENERIC,
-        "MAV-LST",
-        "mav27e099d91de",
+        module_name,
+        module_id,
         "0.0.1",
-        Json_de::array(MESSAGE_FILTER)
+        Json_de::array()  // WAITING FOR NO MESSAGES
     );
 
+    // Add feature this module supports. [OPTIONAL]
     cModule.addModuleFeatures(MODULE_FEATURE_SENDING_TELEMETRY);
     cModule.addModuleFeatures(MODULE_FEATURE_RECEIVING_TELEMETRY);
     
+    // Add Hardware Verification Info to be verified by server. [OPTIONAL]
     cModule.setHardware("123456", ENUM_HARDWARE_TYPE::HARDWARE_TYPE_CPU);
-    cModule.setMessageOnReceive (&onReceive);
     
-    cModule.init("0.0.0.0",60000,"0.0.0.0",70014, DEFAULT_UDP_DATABUS_PACKET_SIZE);
-
+    cModule.init("0.0.0.0",target_port, "0.0.0.0", listen_port, DEFAULT_UDP_DATABUS_PACKET_SIZE);
+    
+    std::cout << "Client Module RUNNING " << std::endl; 
+    
     while (!exit_me)
     {
-       std::this_thread::sleep_for(std::chrono::seconds(1));
-       std::cout << "RUNNING " << std::endl; 
+       std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+       std::cout << "Client Module RUNNING " << std::endl; 
+       sendMsg();
     }
 
 

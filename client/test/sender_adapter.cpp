@@ -6,11 +6,11 @@
 using Json_de = nlohmann::json;
 
 #include "../src/helpers/colors.hpp"
-#include "../src/uavos_common/uavos_module.hpp"
+#include "../src/de_common/de_module.hpp"
 
 
-using namespace uavos;
-using namespace uavos::comm;
+using namespace de;
+using namespace de::comm;
 bool exit_me = false;
 int delay = 1000;
 int counter = 0;
