@@ -2,6 +2,7 @@
 
 #include "../src/helpers/colors.hpp"
 #include "../src/de_common/de_module.hpp"
+#include "../src/de_common/de_facade_base.hpp"
 
 
 
@@ -48,7 +49,7 @@ CModule& cModule= CModule::getInstance();
 void onReceive (const char * message, int len, Json_de jMsg)
 {
     #ifdef DEBUG        
-        std::cout << _LOG_CONSOLE_TEXT_ << "RX MSG: :len " << std::to_string(len) << ":" << message <<   _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout << _LOG_CONSOLE_TEXT << "RX MSG: :len " << std::to_string(len) << ":" << message <<   _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
     
@@ -79,6 +80,9 @@ int main (int argc, char *argv[])
     
     cModule.init("0.0.0.0",60000,"0.0.0.0",70014, DEFAULT_UDP_DATABUS_PACKET_SIZE);
 
+    CFacade_Base facade_base;
+
+    facade_base.sendErrorMessage(std::string(""), 0, ERROR_USER_DEFINED, NOTIFICATION_TYPE_INFO, "Hello World mavlink_listener.");
     while (!exit_me)
     {
        std::this_thread::sleep_for(std::chrono::seconds(1));
