@@ -71,13 +71,15 @@ void de::comm::CModule::sendSYSMSG (const Json_de& jmsg, const int& andruav_mess
  * @param andruav_message_id 
  * @param internal_message if true @link INTERMODULE_MODULE_KEY @endlink equaqls to Module key
  */
-void de::comm::CModule::sendJMSG (const std::string& targetPartyID, const Json_de& jmsg, const int& andruav_message_id, const bool& internal_message)
+void de::comm::CModule::sendJMSG (const std::string targetPartyID, const Json_de jmsg, const int andruav_message_id, const bool internal_message)
 {
+    std::lock_guard<std::mutex> lock(m_lock);
+                
     Json_de fullMessage;
 
     /**
     // Route messages:
-    //  Internally: i.e. DRONE ENGAGE Communication module will handle it and will resend it to other modules
+    //  Internally: i.e. DroneEngage Communication module will handle it and will resend it to other modules
     //                  or modulated then forwarded to Cmmunication Server.
     //  Group: i.e. to all members of groups.
     //  Individual: i.e. to a given member or a certain type of members i.e. all vehicles or all GCS.
@@ -101,8 +103,8 @@ void de::comm::CModule::sendJMSG (const std::string& targetPartyID, const Json_d
     fullMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE]      = andruav_message_id;
     fullMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD]       = jmsg;
     const std::string& msg = fullMessage.dump();
-    #ifdef DEBUG
-        //std::cout << "sendJMSG:" << msg.c_str() << std::endl;
+    #ifdef DDEBUG
+        std::cout << "sendJMSG:" << msg.c_str() << std::endl;
     #endif
     sendMSG(msg.c_str(), msg.length());
 }
@@ -121,6 +123,8 @@ void de::comm::CModule::sendJMSG (const std::string& targetPartyID, const Json_d
  */
 void de::comm::CModule::sendBMSG (const std::string& targetPartyID, const char * bmsg, const int bmsg_length, const int& andruav_message_id, const bool& internal_message, const Json_de& message_cmd)
 {
+    std::lock_guard<std::mutex> lock(m_lock);
+                
     Json_de fullMessage;
 
     std::string msg_routing_type = CMD_COMM_GROUP;
@@ -179,15 +183,35 @@ void de::comm::CModule::sendBMSG (const std::string& targetPartyID, const char *
 */
 void de::comm::CModule::sendMREMSG(const int& command_type)
 {
+    std::lock_guard<std::mutex> lock(m_lock);
+                
     Json_de json_msg;        
         
-    json_msg[INTERMODULE_ROUTING_TYPE] =  CMD_TYPE_INTERMODULE;
+    json_msg[INTERMODULE_MODULE_KEY]        = m_module_key;
+    json_msg[INTERMODULE_ROUTING_TYPE]      =  CMD_TYPE_INTERMODULE;
     json_msg[ANDRUAV_PROTOCOL_MESSAGE_TYPE] =  TYPE_AndruavModule_RemoteExecute;
+    
+
     Json_de ms;
     ms["C"] = command_type;
-    json_msg[ANDRUAV_PROTOCOL_MESSAGE_CMD] = ms;
+    json_msg[ANDRUAV_PROTOCOL_MESSAGE_CMD]          = ms;
+    
+    
     const std::string msg = json_msg.dump();
     sendMSG(msg.c_str(), msg.length());         
+}
+
+
+/**
+ * @brief forward a message received from another channel.
+ * example: P@P module receives a messages from telemetry and wants to forward it on DE databus.
+ * 
+ * @param message 
+ * @param datalength 
+ */
+void de::comm::CModule::forwardMSG (const char * message, const std::size_t datalength)
+{
+    sendMSG(message, datalength);
 }
 
 
@@ -196,7 +220,7 @@ void de::comm::CModule::onReceive (const char * message, int len)
     static bool bFirstReceived = false;
         
     #ifdef DDEBUG        
-        std::cout << _INFO_CONSOLE_TEXT_ << "RX MSG: :len " << std::to_string(len) << ":" << message <<   _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout << _INFO_CONSOLE_TEXT << "RX MSG: :len " << std::to_string(len) << ":" << message <<   _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
     try
@@ -205,7 +229,7 @@ void de::comm::CModule::onReceive (const char * message, int len)
         Json_de jMsg = Json_de::parse(message);
         
         #ifdef DDEBUG
-        std::cout << _INFO_CONSOLE_TEXT_ << "RX MSG: jMsg" << jMsg.dump() <<   _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout << _INFO_CONSOLE_TEXT << "RX MSG: jMsg" << jMsg.dump() <<   _NORMAL_CONSOLE_TEXT_ << std::endl;
         #endif
 
         if (!jMsg.contains(ANDRUAV_PROTOCOL_MESSAGE_TYPE)) return ;
@@ -237,7 +261,7 @@ void de::comm::CModule::onReceive (const char * message, int len)
                     if (!bFirstReceived)
                     { 
                         // tell server you dont need to send ID again.
-                        std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << " ** Communicator Server Found" << _SUCCESS_CONSOLE_TEXT_ << ": m_party_id(" << _INFO_CONSOLE_TEXT_ << m_party_id << _SUCCESS_CONSOLE_TEXT_ << ") m_group_id(" << _INFO_CONSOLE_TEXT_ << m_group_id << _SUCCESS_CONSOLE_TEXT_ << ")" <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+                        std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << " ** Communicator Server Found" << _SUCCESS_CONSOLE_TEXT_ << ": m_party_id(" << _INFO_CONSOLE_TEXT << m_party_id << _SUCCESS_CONSOLE_TEXT_ << ") m_group_id(" << _INFO_CONSOLE_TEXT << m_group_id << _SUCCESS_CONSOLE_TEXT_ << ")" <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
                         createJSONID(false);
                         bFirstReceived = true;
                     }
