@@ -82,8 +82,8 @@ void processMessages() {
         std::cout << _TEXT_BOLD_HIGHTLITED_ << "QUEUE : " << _SUCCESS_CONSOLE_BOLD_TEXT_ << counter << " diff:" << _SUCCESS_CONSOLE_BOLD_TEXT_ << diff << _NORMAL_CONSOLE_TEXT_ << std::endl;
         
 
-        #ifdef DEBUG        
-            //std::cout << _LOG_CONSOLE_TEXT_ << "RX MSG#" << _INFO_CONSOLE_BOLD_TEXT << messages_processed_counter << ":len " << std::to_string(frontMessage.size()) << ":" << frontMessage.data() <<   _NORMAL_CONSOLE_TEXT_ << std::endl;
+        #ifdef DDEBUG        
+            std::cout << _LOG_CONSOLE_TEXT << "RX MSG#" << _INFO_CONSOLE_BOLD_TEXT << messages_processed_counter << ":len " << std::to_string(frontMessage.size()) << ":" << frontMessage.data() <<   _NORMAL_CONSOLE_TEXT_ << std::endl;
         #endif
         lock.unlock();
         
@@ -197,7 +197,7 @@ int main (int argc, char *argv[])
 
     std::string module_id = generateRandomModuleID();
     
-    std::cout << _INFO_CONSOLE_TEXT_ << "Receiver Rate-Adapter " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _INFO_CONSOLE_TEXT << "Receiver Rate-Adapter " << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
     // Define a Module
     cModule.defineModule(

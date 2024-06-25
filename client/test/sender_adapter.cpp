@@ -47,14 +47,14 @@ void onReceive (const char * message, int len, Json_de jMsg)
     const int msgid = jMsg[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
 
     #ifdef DDEBUG        
-        std::cout << _LOG_CONSOLE_TEXT_ << "RX MSG:" << msgid << ":len: " << std::to_string(len) << ":" << message <<   _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout << _LOG_CONSOLE_TEXT << "RX MSG:" << msgid << ":len: " << std::to_string(len) << ":" << message <<   _NORMAL_CONSOLE_TEXT_ << std::endl;
         std::cout << jMsg.dump() << std::endl;
     #endif
 
     if (msgid == TYPE_CUSTOM_CHANGE_RATE)
     {
         const int delta_delay = jMsg["ms"]["value"].get<int>();
-        std::cout << _LOG_CONSOLE_BOLD_TEXT_ << "delta_delay:" << _INFO_CONSOLE_BOLD_TEXT << delta_delay << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout << _LOG_CONSOLE_BOLD_TEXT << "delta_delay:" << _INFO_CONSOLE_BOLD_TEXT << delta_delay << _NORMAL_CONSOLE_TEXT_ << std::endl;
         if (delta_delay==0) 
         {
             delay = delay / 2;
@@ -138,12 +138,12 @@ int main (int argc, char *argv[])
     
     while (!exit_me)
     {
-        std::cout << _LOG_CONSOLE_TEXT_ << "Next Message in " << _INFO_CONSOLE_BOLD_TEXT << delay << _LOG_CONSOLE_TEXT_ << " ms" << _NORMAL_CONSOLE_TEXT_ <<  std::endl; 
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
         
 
         std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
         if (now - oldnow > std::chrono::milliseconds(delay)) {
+            std::cout << _LOG_CONSOLE_TEXT << "Next Message in " << _INFO_CONSOLE_BOLD_TEXT << delay << _LOG_CONSOLE_TEXT << " ms" << _NORMAL_CONSOLE_TEXT_ <<  std::endl; 
             oldnow = now;
             std::cout << _TEXT_BOLD_HIGHTLITED_ << "SENDING MESSAGE NUMBER:" << _SUCCESS_CONSOLE_BOLD_TEXT_ << counter << _NORMAL_CONSOLE_TEXT_ << std::endl; 
             sendMsg();

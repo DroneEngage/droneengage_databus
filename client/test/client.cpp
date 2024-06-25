@@ -96,7 +96,7 @@ int main (int argc, char *argv[])
     
     std::string module_id = generateRandomModuleID();
     
-    std::cout << _INFO_CONSOLE_TEXT_ << "Client Module-Started " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _INFO_CONSOLE_TEXT << "Client Module-Started " << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
     // Define a Module
     cModule.defineModule(

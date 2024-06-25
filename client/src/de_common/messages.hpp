@@ -291,6 +291,8 @@
 #define ERROR_RCCONTROL                         12
 #define ERROR_GEO_FENCE_ERROR                   100
 
+#define ERROR_USER_DEFINED                      1000
+
 // 0	MAV_SEVERITY_EMERGENCY	System is unusable. This is a "panic" condition.
 #define NOTIFICATION_TYPE_EMERGENCY             0
 // 1	MAV_SEVERITY_ALERT	Action should be taken immediately. Indicates error in non-critical systems.

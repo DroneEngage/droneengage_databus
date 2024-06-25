@@ -23,27 +23,27 @@ de::comm::CUDPClient::~CUDPClient ()
 {
     
     #ifdef DEBUG
-	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT_ << "DEBUG: ~CUDPClient" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: ~CUDPClient" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
     if (m_stopped_called == false)
     {
         #ifdef DEBUG
-	    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT_ << "DEBUG: ~CUDPClient" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+	    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: ~CUDPClient" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         #endif
 
         stop();
     }
 
     #ifdef DEBUG
-	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT_ << "DEBUG: ~CUDPClient" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: ~CUDPClient" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
     // destroy mutex
 	//pthread_mutex_destroy(&m_lock);
 
     #ifdef DEBUG
-	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT_ << "DEBUG: ~CUDPClient" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: ~CUDPClient" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
 }
@@ -95,15 +95,15 @@ void de::comm::CUDPClient::init (const char * targetIP, int broadcatsPort, const
     // Bind the socket with the server address 
     if (bind(m_SocketFD, (const struct sockaddr *)m_ModuleAddress, sizeof(struct sockaddr_in))>0) 
     { 
-        std::cout << _LOG_CONSOLE_BOLD_TEXT_<< "UDP Listener  " << _ERROR_CONSOLE_TEXT_ << " BAD BIND: " << host << ":" << listenningPort << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout << _LOG_CONSOLE_BOLD_TEXT<< "UDP Listener  " << _ERROR_CONSOLE_TEXT_ << " BAD BIND: " << host << ":" << listenningPort << _NORMAL_CONSOLE_TEXT_ << std::endl;
         exit(-1) ;
     } 
 
-    std::cout << _LOG_CONSOLE_BOLD_TEXT_ << "UDP Listener at " << _INFO_CONSOLE_TEXT_ << host << ":" << listenningPort << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _LOG_CONSOLE_BOLD_TEXT << "UDP Listener at " << _INFO_CONSOLE_TEXT << host << ":" << listenningPort << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
-    std::cout << _LOG_CONSOLE_BOLD_TEXT_ << "Expected Comm Server at " <<  _INFO_CONSOLE_TEXT_ << targetIP << ":" <<  broadcatsPort << _NORMAL_CONSOLE_TEXT_ << std::endl;  
+    std::cout << _LOG_CONSOLE_BOLD_TEXT << "Expected Comm Server at " <<  _INFO_CONSOLE_TEXT << targetIP << ":" <<  broadcatsPort << _NORMAL_CONSOLE_TEXT_ << std::endl;  
 
-    std::cout << _LOG_CONSOLE_BOLD_TEXT_ << "UDP Max Packet Size " << _INFO_CONSOLE_TEXT_ << chunkSize <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _LOG_CONSOLE_BOLD_TEXT << "UDP Max Packet Size " << _INFO_CONSOLE_TEXT << chunkSize <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
 
 }
 
@@ -136,7 +136,7 @@ void de::comm::CUDPClient::stop()
 {
 
     #ifdef DEBUG
-	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT_ << "DEBUG: Stop" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Stop" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
     m_stopped_called = true;
@@ -149,7 +149,7 @@ void de::comm::CUDPClient::stop()
     }
     
     #ifdef DEBUG
-	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT_ << "DEBUG: Stop" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Stop" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
     try
@@ -167,7 +167,7 @@ void de::comm::CUDPClient::stop()
         delete m_CommunicatorModuleAddress;
 
         #ifdef DEBUG
-	    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT_ << "DEBUG: Stop" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+	    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Stop" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         #endif
     }
     catch(const std::exception& e)
@@ -176,7 +176,7 @@ void de::comm::CUDPClient::stop()
     }
 
     #ifdef DEBUG
-	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT_ << "DEBUG: Stop" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Stop" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
     
@@ -254,7 +254,7 @@ void de::comm::CUDPClient::InternalReceiverEntry()
     }
 
     #ifdef DDEBUG
-        std::cout << __FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  " << _LOG_CONSOLE_TEXT_
+        std::cout << __FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  " << _LOG_CONSOLE_TEXT
               << "DEBUG: InternalReceiverEntry EXIT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 }
@@ -292,7 +292,7 @@ void de::comm::CUDPClient::InternelSenderIDEntry()
     }
 
     #ifdef DDEBUG
-        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT_ << "DEBUG: InternelSenderIDEntry EXIT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: InternelSenderIDEntry EXIT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
 }
@@ -356,7 +356,7 @@ void de::comm::CUDPClient::sendMSG (const char * msg, const int length)
     }
     catch (const std::exception& e)
     {
-        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT_ << "DEBUG: InternelSenderIDEntry EXIT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: InternelSenderIDEntry EXIT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         std::cerr << e.what() << '\n';
     }
     
