@@ -139,7 +139,7 @@ namespace comm
                 return m_module_features;
             }
 
-             inline void addModuleFeatures(const std::string feature)
+            inline void addModuleFeatures(const std::string feature)
             {
                 m_module_features.push_back(feature);
             }
