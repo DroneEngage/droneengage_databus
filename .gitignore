@@ -3,3 +3,5 @@
 /client/build
 /python/__pycache__
 *.pyc
+/nodejs/node_modules
+/nodejs/package-lock.json
