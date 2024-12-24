@@ -15,27 +15,22 @@ DEFAULT_UDP_DATABUS_PACKET_SIZE = 8192
 
 cModule = CModule()
 
-baseFacade = CFacade_Base (cModule)
+my_facade_class = MyFacade (cModule)
 
 def generate_random_module_id():
     return ''.join(random.choice('0123456789') for _ in range(12))
 
 def send_msg():
-    # message = {
-    #     "t": "THIS IS A TEST MESSAGE",
-    #     "long": "Received the likewise law graceful his. Nor might set along charm now equal green. Pleased yet equally correct colonel not one. Say anxious carried compact conduct sex general nay certain. Mrs for recommend exquisite household eagerness preserved now. My improved honoured he am ecstatic quitting greatest formerly."
-    # }
-    # cModule.sendJMSG("", message, TYPE_AndruavMessage_DUMMY, True)
-    baseFacade.sendErrorMessage("",NOTIFICATION_TYPE_NOTICE, ERROR_USER_DEFINED, NOTIFICATION_TYPE_INFO,"Hello from python")
+   my_facade_class.sendErrorMessage("",NOTIFICATION_TYPE_NOTICE, ERROR_USER_DEFINED, NOTIFICATION_TYPE_INFO,"Hello from python")
 
 if __name__ == "__main__":
     print(INFO_CONSOLE_BOLD_TEXT + "This module can be used as follows:" + NORMAL_CONSOLE_TEXT)
-    print(SUCCESS_CONSOLE_BOLD_TEXT + "./client sample_mod_py 60000 61111" + NORMAL_CONSOLE_TEXT)
+    print(SUCCESS_CONSOLE_BOLD_TEXT + "python client MODULE_NAME 60000 61111" + NORMAL_CONSOLE_TEXT)
     print(INFO_CONSOLE_BOLD_TEXT + "If drone engage is running on port 60000 it will connect to it and appears in WebClient Details tab as a module named sample_mod_py." + NORMAL_CONSOLE_TEXT)
     print("Press any key to continue ...")
-    #input()
-
+    
     if len(sys.argv) < 4:
+        input()
         print(INFO_CONSOLE_BOLD_TEXT + "Insufficient arguments. Usage: app module_name broker_port(60000) listen_port(60003)" + NORMAL_CONSOLE_TEXT)
         exit(1)
 

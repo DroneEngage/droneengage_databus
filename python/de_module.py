@@ -91,7 +91,16 @@ class CModule(object):
         msg = json.dumps(full_message)
         self.send_msg(msg.encode(), len(msg))
 
+    
     def sendJMSG(self, targetPartyID, jmsg, andruav_message_id, internal_message):
+        """Generate and sends JSON text string
+
+        Args:
+            targetPartyID (_type_): destination unit partyid
+            jmsg (_type_): _description_
+            andruav_message_id (_type_): _description_
+            internal_message (_type_): _description_
+        """
         with self.m_lock:
             fullMessage = {}
 
