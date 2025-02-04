@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1.0)
+cmake_minimum_required(VERSION 3.10.0)
 
 if(NOT WIN32)
   string(ASCII 27 Esc)
@@ -102,22 +102,6 @@ foreach(test_source ${test_sources})
 endforeach()
 
 
-#Create a static library
-# add_library(OUTPUT_BINARY STATIC ${files})
-
-# set_target_properties(OUTPUT_BINARY 
-#                 PROPERTIES 
-#                     OUTPUT_NAME "droneengage_client_bus"
-#                     SUFFIX ".a"
-#                 )
-
-#add_library(OUTPUT_BINARY_DYN SHARED ${files})
-
-# set_target_properties(OUTPUT_BINARY_DYN 
-#                 PROPERTIES 
-#                     OUTPUT_NAME "droneengage_client_bus"
-#                     SUFFIX ".so"
-#                 )
                 
 add_executable( OUTPUT_BINARY ${files})
 
