@@ -31,7 +31,7 @@ if __name__ == "__main__":
     
     if len(sys.argv) < 4:
         input()
-        print(INFO_CONSOLE_BOLD_TEXT + "Insufficient arguments. Usage: app module_name broker_port(60000) listen_port(60003)" + NORMAL_CONSOLE_TEXT)
+        print(INFO_CONSOLE_BOLD_TEXT + "Insufficient arguments. Usage: app module_name broker_port(60000) listen_port(60003) e.g. python client.py PY_Plugin 60000 61233" + NORMAL_CONSOLE_TEXT)
         exit(1)
 
     module_name = sys.argv[1]
