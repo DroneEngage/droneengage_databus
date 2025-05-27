@@ -20,6 +20,10 @@ typedef enum {
 #define MODULE_FEATURE_SENDING_TELEMETRY        "T"
 #define MODULE_FEATURE_CAPTURE_IMAGE            "C"
 #define MODULE_FEATURE_CAPTURE_VIDEO            "V"
+#define MODULE_FEATURE_GPIO                     "G"
+#define MODULE_FEATURE_AI_RECOGNITION           "A"
+#define MODULE_FEATURE_TRACKING                 "K"
+#define MODULE_FEATURE_P2P                      "P" 
 
 
 #define MODULE_CLASS_COMM                       "comm"
@@ -27,6 +31,9 @@ typedef enum {
 #define MODULE_CLASS_VIDEO                      "camera"
 #define MODULE_CLASS_P2P                        "p2p"
 #define MODULE_CLASS_GENERIC                    "gen"
+#define MODULE_CLASS_GPIO                       "gpio" 
+#define MODULE_CLASS_A_RECOGNITION              "ai_rec" 
+#define MODULE_CLASS_TRACKING                   "trk" 
 
 
 namespace de
@@ -115,13 +122,6 @@ namespace comm
             void createJSONID (bool reSend) ;
 
 
-            /**
-             * @brief Set the m_party_id & m_group_id
-             * 
-             * @param party_id 
-             * @param group_id 
-             */
-            void setPartyID (const std::string& party_id, const std::string& group_id){};
             
 
             
