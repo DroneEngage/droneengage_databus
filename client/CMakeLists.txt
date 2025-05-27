@@ -27,7 +27,7 @@ message( FATAL_ERROR “In-source builds not allowed! Create a build directory a
 exit(1)
 endif()
 
-set (PROJECT_VERSION  "3.0.0")
+set (PROJECT_VERSION  "3.2.0")
 project(UAVOS_CLIENT_CPP VERSION ${PROJECT_VERSION})
 
 
