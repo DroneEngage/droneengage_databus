@@ -62,11 +62,8 @@ void onReceive (const char * message, int len, Json_de jMsg)
     
 }
 
-int main (int argc, char *argv[])
+void initDEModule(int argc, char *argv[])
 {
-
-    std::cout << _INFO_CONSOLE_TEXT << "HELLO " << _NORMAL_CONSOLE_TEXT_ << std::endl;
-
     // Define a Module
     cModule.defineModule(
         MODULE_CLASS_GENERIC,
@@ -75,14 +72,25 @@ int main (int argc, char *argv[])
         "0.0.1",
         Json_de::array(MESSAGE_FILTER)
     );
-    cModule.addModuleFeatures(MODULE_FEATURE_SENDING_TELEMETRY);
-    cModule.addModuleFeatures(MODULE_FEATURE_RECEIVING_TELEMETRY);
     
+    
+    cModule.addModuleFeatures(MODULE_FEATURE_SENDING_TELEMETRY);  // ADD Features 
+    cModule.addModuleFeatures(MODULE_FEATURE_RECEIVING_TELEMETRY);  // ADD Features 
+        
     cModule.setHardware("123456", ENUM_HARDWARE_TYPE::HARDWARE_TYPE_CPU);
     cModule.setMessageOnReceive (&onReceive);
     
     cModule.init("0.0.0.0",60000,"0.0.0.0",60013, DEFAULT_UDP_DATABUS_PACKET_SIZE);
-    
+}
+
+
+
+int main (int argc, char *argv[])
+{
+
+    std::cout << _INFO_CONSOLE_TEXT << "HELLO " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+
+    initDEModule(argc, argv);
 
     while (!exit_me)
     {
