@@ -155,3 +155,10 @@ bool validateField (const Json_de& message, const char *field_name, const Json_d
 
     return true;
 }
+
+
+// Function to round a double to a specified number of decimal places
+double roundToPrecision(double value, int decimalPlaces) {
+    double multiplier = std::pow(10.0, decimalPlaces);
+    return std::round(value * multiplier) / multiplier;
+}

@@ -46,5 +46,6 @@ int signum(T x) {
     return signum(x, std::is_signed<T>());
 }
 
+double roundToPrecision(double value, int decimalPlaces);
 
 #endif
