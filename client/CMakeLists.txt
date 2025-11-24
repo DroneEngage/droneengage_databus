@@ -82,19 +82,20 @@ SET(OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 file(MAKE_DIRECTORY ${OUTPUT_DIRECTORY})
 
 file(GLOB main "./src/*.cpp")
-file(GLOB de "./src/de_common/*.cpp")
-file(GLOB folder_helpers "./src/helpers/*.cpp")
+file(GLOB folder_uavos "./src/de_common/*.cpp")
+file(GLOB folder_uavos1 "./src/de_common/de_databus/*.cpp")
+file(GLOB folder_uavos2 "./src/de_common/helpers/*.cpp")
 
-set(files ${main} ${de} ${folder_helpers})
+set(files ${main} ${folder_uavos} ${folder_uavos1} ${folder_uavos2} )
 
 file(GLOB test_sources "./test/*.cpp")
 
-set(testfiles ${test_sources} ${de} ${folder_helpers})
+set(testfiles ${test_sources} ${folder_uavos} ${folder_uavos1} ${folder_uavos2} )
 
 
 foreach(test_source ${test_sources})
     get_filename_component(test_name ${test_source} NAME_WE)
-    add_executable(${test_name} ${test_source} ${de} ${folder_helpers})
+    add_executable(${test_name} ${test_source} ${folder_uavos} ${folder_uavos1} ${folder_uavos2} )
     
     set_target_properties(${test_name} PROPERTIES OUTPUT_NAME "${test_name}")
     set_target_properties(${test_name} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_DIRECTORY})

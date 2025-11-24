@@ -4,11 +4,11 @@
 #include <random>
 #include <thread>
 
-#include "../src/helpers/json_nlohmann.hpp"
+#include "../src/de_common/helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
 
-#include "../src/helpers/colors.hpp"
-#include "../src/de_common/de_module.hpp"
+#include "../src/de_common/helpers/colors.hpp"
+#include "../src/de_common/de_databus/de_module.hpp"
 
 #include <mutex>
 #include <condition_variable>

@@ -1,8 +1,8 @@
 
 
-#include "../src/helpers/colors.hpp"
-#include "../src/de_common/de_module.hpp"
-#include "../src/de_common/de_facade_base.hpp"
+#include "../src/de_common/helpers/colors.hpp"
+#include "../src/de_common/de_databus/de_module.hpp"
+#include "../src/de_common/de_databus/de_facade_base.hpp"
 
 
 
@@ -23,9 +23,9 @@ bool exit_me = false;
                         TYPE_AndruavMessage_DoYAW,\
                         TYPE_AndruavMessage_DistinationLocation, \
                         TYPE_AndruavMessage_ChangeSpeed, \
-                        TYPE_AndruavMessage_TrackingTarget, \
+                        TYPE_AndruavMessage_TrackingTarget_ACTION, \
                         TYPE_AndruavMessage_TrackingTargetLocation, \
-                        TYPE_AndruavMessage_TargetLost, \
+                        TYPE_AndruavMessage_TargetTracking_STATUS, \
                         TYPE_AndruavMessage_UploadWayPoints, \
                         TYPE_AndruavMessage_RemoteControlSettings, \
                         TYPE_AndruavMessage_SET_HOME_LOCATION, \
@@ -35,12 +35,12 @@ bool exit_me = false;
                         TYPE_AndruavMessage_Sync_EventFire, \
                         TYPE_AndruavMessage_MAVLINK, \
                         TYPE_AndruavMessage_SWARM_MAVLINK, \
-                        TYPE_AndruavMessage_MAKE_SWARM,  \
+                        TYPE_AndruavMessage_Make_Swarm,  \
                         TYPE_AndruavMessage_FollowHim_Request,  \
                         TYPE_AndruavMessage_FollowMe_Guided, \
                         TYPE_AndruavMessage_UpdateSwarm, \
                         TYPE_AndruavMessage_UDPProxy_Info, \
-                        TYPE_AndruavSystem_UdpProxy, \
+                        TYPE_AndruavSystem_UDPProxy, \
                         TYPE_AndruavMessage_P2P_ACTION, \
                         TYPE_AndruavMessage_P2P_STATUS}
 

@@ -1,0 +1,6 @@
+[submodule "client/client/src"]
+	path = client/client/src
+	url = https://github.com/DroneEngage/droneengage_common.git
+[submodule "client/src/de_common"]
+	path = client/src/de_common
+	url = https://github.com/DroneEngage/droneengage_common.git
