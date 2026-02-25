@@ -141,4 +141,26 @@ NOTIFICATION_TYPE_NOTICE                = 5
 NOTIFICATION_TYPE_INFO                  = 6
 NOTIFICATION_TYPE_DEBUG                 = 7
 
-TYPE_AndruavMessage_DUMMY               = 9999
+# Config Actions
+CONFIG_ACTION_Restart = 0
+CONFIG_ACTION_APPLY_CONFIG = 1
+CONFIG_REQUEST_FETCH_CONFIG_TEMPLATE = 2
+CONFIG_REQUEST_FETCH_CONFIG = 3
+CONFIG_ACTION_SHUT_DOWN = 4
+CONFIG_STATUS_FETCH_CONFIG_TEMPLATE = 0
+CONFIG_STATUS_FETCH_CONFIG = 1
+
+# Config Message Types
+TYPE_AndruavMessage_CONFIG_ACTION = 6525
+TYPE_AndruavMessage_CONFIG_STATUS = 6526
+
+# Additional protocol constants
+ANDRUAV_PROTOCOL_SENDER_COMM_SERVER = "_SYS_"
+
+TYPE_AndruavMessage_DUMMY                       = 9999
+ERROR_GEO_FENCE_ERROR                   = 100
+
+ERROR_USER_DEFINED                      = 1000
+
+TYPE_AndruavMessage_USER_RANGE_START            = 80000
+TYPE_AndruavMessage_USER_RANGE_END              = 90000
