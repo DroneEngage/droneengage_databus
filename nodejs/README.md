@@ -99,6 +99,16 @@ npm install
 
 ### Basic Module Example
 
+```bash
+cd nodejs
+npm install
+node client.js --help               # Show comprehensive help
+node client.js MyModule 60000 61234   # Run with all arguments  
+node client.js MyModule              # Uses default ports (60000, 61111)
+```
+
+### Programmatic Example
+
 ```javascript
 const CModule = require('./de_module');
 const { CMyFacade } = require('./de_facade_base');
@@ -431,6 +441,7 @@ const TYPE_MY_CUSTOM_MESSAGE = TYPE_AndruavMessage_USER_RANGE_START + 1;
 
 ```javascript
 const readline = require('readline');
+const dgram = require('dgram');
 const CModule = require('./de_module');
 const { CMyFacade } = require('./de_facade_base');
 const { 
@@ -447,6 +458,41 @@ const {
 } = require('./colors');
 
 const DEFAULT_UDP_DATABUS_PACKET_SIZE = 8192;
+
+let shutdownRequested = false;
+let intervalId = null;
+
+// Signal handlers for graceful shutdown
+process.on('SIGINT', () => {
+    console.log(`\n${INFO_CONSOLE_TEXT}Received SIGINT, shutting down gracefully...${NORMAL_CONSOLE_TEXT}`);
+    shutdownRequested = true;
+    if (intervalId) {
+        clearInterval(intervalId);
+    }
+    cleanupAndExit();
+});
+
+process.on('SIGTERM', () => {
+    console.log(`\n${INFO_CONSOLE_TEXT}Received SIGTERM, shutting down gracefully...${NORMAL_CONSOLE_TEXT}`);
+    shutdownRequested = true;
+    if (intervalId) {
+        clearInterval(intervalId);
+    }
+    cleanupAndExit();
+});
+
+function cleanupAndExit() {
+    console.log(`${INFO_CONSOLE_TEXT}Cleaning up resources...${NORMAL_CONSOLE_TEXT}`);
+    try {
+        if (cModule && typeof cModule.uninit === 'function') {
+            cModule.uninit();
+        }
+    } catch (error) {
+        console.error(`${ERROR_CONSOLE_TEXT}Error during cleanup: ${error.message}${NORMAL_CONSOLE_TEXT}`);
+    }
+    console.log(`${SUCCESS_CONSOLE_BOLD_TEXT}Client Module EXIT${NORMAL_CONSOLE_TEXT}`);
+    process.exit(0);
+}
 
 // Create module singleton
 const cModule = new CModule();
@@ -466,52 +512,124 @@ function sendMsg() {
     );
 }
 
-if (require.main === module) {
-    console.log(INFO_CONSOLE_BOLD_TEXT + "Node.js DroneEngage Module" + NORMAL_CONSOLE_TEXT);
-    console.log(SUCCESS_CONSOLE_BOLD_TEXT + "Usage: node client.js MODULE_NAME DE_COMM_PORT LISTEN_PORT" + NORMAL_CONSOLE_TEXT);
-    console.log(INFO_CONSOLE_BOLD_TEXT + "Example: node client.js nodejs 60000 61234" + NORMAL_CONSOLE_TEXT);
-    console.log("Press any key to continue ...");
-    
+function printUsage() {
+    console.log(INFO_CONSOLE_BOLD_TEXT + "DroneEngage Node.js Client Module" + NORMAL_CONSOLE_TEXT);
+    console.log();
+    console.log(SUCCESS_CONSOLE_BOLD_TEXT + "USAGE:" + NORMAL_CONSOLE_TEXT);
+    console.log("  node client.js [OPTIONS] MODULE_NAME de_comm_port LISTEN_PORT");
+    console.log();
+    console.log(SUCCESS_CONSOLE_BOLD_TEXT + "ARGUMENTS:" + NORMAL_CONSOLE_TEXT);
+    console.log("  MODULE_NAME    Name of the module (e.g., DE_Plugin, My_Custom_DE_Module)");
+    console.log("  de_comm_port    Port where DE Communicator (de_comm) is running (default: 60000)");
+    console.log("  LISTEN_PORT    Port for this module to listen on (default: 61111)");
+    console.log();
+    console.log(SUCCESS_CONSOLE_BOLD_TEXT + "OPTIONS:" + NORMAL_CONSOLE_TEXT);
+    console.log("  -h, --help     Show this help message and exit");
+    console.log();
+    console.log(SUCCESS_CONSOLE_BOLD_TEXT + "EXAMPLES:" + NORMAL_CONSOLE_TEXT);
+    console.log("  node client.js sample_mod_js 60000 61111");
+    console.log("  node client.js JS_Plugin 60000 61233");
+    console.log();
+    console.log(INFO_CONSOLE_BOLD_TEXT + "DESCRIPTION:" + NORMAL_CONSOLE_TEXT);
+    console.log("  This client connects to a DE Communicator (de_comm) and appears in the");
+    console.log("  WebClient Details tab as a module with the specified name.");
+    console.log("  The module supports sending and receiving telemetry messages.");
+}
+
+function parseArguments() {
     const args = process.argv.slice(2);
-    if (args.length < 3) {
-        console.log(INFO_CONSOLE_BOLD_TEXT + "Insufficient arguments!" + NORMAL_CONSOLE_TEXT);
-        process.exit(1);
+    const options = {
+        help: false,
+        moduleName: null,
+        deCommPort: 60000,
+        listenPort: 61111
+    };
+
+    for (let i = 0; i < args.length; i++) {
+        const arg = args[i];
+        if (arg === '-h' || arg === '--help') {
+            options.help = true;
+        } else if (!options.moduleName) {
+            options.moduleName = arg;
+        } else if (!options.deCommPortSet) {
+            options.deCommPort = parseInt(arg);
+            options.deCommPortSet = true;
+        } else if (!options.listenPortSet) {
+            options.listenPort = parseInt(arg);
+            options.listenPortSet = true;
+        }
     }
 
-    const moduleName = args[0];
-    const targetPort = parseInt(args[1]);
-    const listenPort = parseInt(args[2]);
+    return options;
+}
+
+if (require.main === module) {
+    const options = parseArguments();
+    
+    // Show help if requested or missing module name
+    if (options.help || !options.moduleName) {
+        printUsage();
+        if (!options.help) {
+            console.log("Press any key to continue ...");
+            waitForKeyPress(() => {
+                process.exit(1);
+            });
+        } else {
+            process.exit(0);
+        }
+        return;
+    }
+
+    const moduleName = options.moduleName;
+    const targetPort = options.deCommPort;
+    const listenPort = options.listenPort;
+
     const moduleId = generateRandomModuleId();
 
-    console.log(INFO_CONSOLE_TEXT + "Initializing module..." + NORMAL_CONSOLE_TEXT);
+    console.log(INFO_CONSOLE_TEXT + "Client Module-Started " + NORMAL_CONSOLE_TEXT);
 
-    // Define module
+    // Define a Module
     cModule.defineModule(
-        "gen",          // MODULE_CLASS_GENERIC
+        "gen", // MODULE_CLASS_GENERIC
         moduleName,
         moduleId,
         "0.0.1",
-        []              // Empty filter = receive all messages
+        []
     );
 
-    // Add features
-    cModule.addModuleFeatures("T"); // SENDING_TELEMETRY
-    cModule.addModuleFeatures("R"); // RECEIVING_TELEMETRY
+    // Add features this module supports. [OPTIONAL]
+    cModule.addModuleFeatures("T"); // MODULE_FEATURE_SENDING_TELEMETRY
+    cModule.addModuleFeatures("R"); // MODULE_FEATURE_RECEIVING_TELEMETRY
 
-    // Set hardware info
+    // Add Hardware Verification Info to be verified by the server. [OPTIONAL]
     cModule.setHardware("123456", 1); // HARDWARE_TYPE_CPU
 
-    // Initialize connection
-    cModule.init("0.0.0.0", targetPort, "0.0.0.0", listenPort, 
-                DEFAULT_UDP_DATABUS_PACKET_SIZE);
+    cModule.init("0.0.0.0", targetPort, "0.0.0.0", listenPort, DEFAULT_UDP_DATABUS_PACKET_SIZE);
 
-    console.log(SUCCESS_CONSOLE_BOLD_TEXT + "Module running!" + NORMAL_CONSOLE_TEXT);
+    console.log("Client Module RUNNING");
 
-    // Main loop
-    setInterval(() => {
-        console.log("Module RUNNING");
-        sendMsg();
+    // Replace infinite setInterval with shutdown-aware loop
+    intervalId = setInterval(() => {
+        if (!shutdownRequested) {
+            console.log("Client Module RUNNING");
+            sendMsg();
+        } else {
+            clearInterval(intervalId);
+        }
     }, 1000);
+}
+
+// Function to wait for a key press
+function waitForKeyPress(callback) {
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+    });
+
+    rl.on('line', () => {
+        rl.close(); // Close the readline interface
+        callback(); // Call the provided callback function
+    });
 }
 ```
 
@@ -520,15 +638,22 @@ if (require.main === module) {
 ```bash
 # Start DroneEngage communicator (typically on port 60000)
 
-# Run Node.js module
-node client.js MyNodeModule 60000 61234
-```
+# Run Node.js module with help
+node client.js --help
 
-The module will:
-1. Connect to the communicator on port 60000
-2. Listen for messages on port 61234
-3. Appear in the WebClient Details tab
-4. Send periodic "Hello from Node.js" messages
+# Run with all arguments
+node client.js MyNodeModule 60000 61234
+
+# Run with default ports
+node client.js MyNodeModule
+
+# The module will:
+# 1. Connect to the communicator on port 60000
+# 2. Listen for messages on port 61234 (or default 61111)
+# 3. Appear in the WebClient Details tab
+# 4. Send periodic "Hello from Node.js" messages
+# 5. Handle graceful shutdown on SIGINT/SIGTERM
+```
 
 ## Message Filtering
 

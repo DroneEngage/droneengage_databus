@@ -97,6 +97,16 @@ pip install colorama
 
 ### Basic Module Example
 
+```bash
+cd python
+pip install colorama
+python client.py --help              # Show comprehensive help
+python client.py MyModule 60000 61233  # Run with all arguments
+python client.py MyModule             # Uses default ports (60000, 61111)
+```
+
+### Programmatic Example
+
 ```python
 import sys
 import json
@@ -401,6 +411,8 @@ import sys
 import json
 import random
 import time
+import argparse
+import signal
 from de_module import *
 from de_facade_base import *
 from colors import *
@@ -426,18 +438,56 @@ def send_msg():
         "Hello from Python"
     )
 
+def print_usage():
+    """Print detailed usage information"""
+    print(INFO_CONSOLE_BOLD_TEXT + "DroneEngage Python Client Module" + NORMAL_CONSOLE_TEXT)
+    print()
+    print(SUCCESS_CONSOLE_BOLD_TEXT + "USAGE:" + NORMAL_CONSOLE_TEXT)
+    print("  python client.py [OPTIONS] MODULE_NAME de_comm_port LISTEN_PORT")
+    print()
+    print(SUCCESS_CONSOLE_BOLD_TEXT + "ARGUMENTS:" + NORMAL_CONSOLE_TEXT)
+    print("  MODULE_NAME    Name of the module (e.g., DE_Plugin, My_Custom_DE_Module)")
+    print("  de_comm_port    Port where DE Communicator (de_comm) is running (default: 60000)")
+    print("  LISTEN_PORT    Port for this module to listen on (default: 61111)")
+    print()
+    print(SUCCESS_CONSOLE_BOLD_TEXT + "OPTIONS:" + NORMAL_CONSOLE_TEXT)
+    print("  -h, --help     Show this help message and exit")
+    print()
+    print(SUCCESS_CONSOLE_BOLD_TEXT + "EXAMPLES:" + NORMAL_CONSOLE_TEXT)
+    print("  python client.py sample_mod_py 60000 61111")
+    print("  python client.py PY_Plugin 60000 61233")
+    print()
+    print(INFO_CONSOLE_BOLD_TEXT + "DESCRIPTION:" + NORMAL_CONSOLE_TEXT)
+    print("  This client connects to a DE Communicator (de_comm) and appears in the")
+    print("  WebClient Details tab as a module with the specified name.")
+    print("  The module supports sending and receiving telemetry messages.")
+
 if __name__ == "__main__":
-    print(INFO_CONSOLE_BOLD_TEXT + "Python DroneEngage Module" + NORMAL_CONSOLE_TEXT)
-    print(SUCCESS_CONSOLE_BOLD_TEXT + "Usage: python client.py MODULE_NAME DE_COMM_PORT LISTEN_PORT" + NORMAL_CONSOLE_TEXT)
-    print(INFO_CONSOLE_BOLD_TEXT + "Example: python client.py PY_Plugin 60000 61233" + NORMAL_CONSOLE_TEXT)
+    # Set up signal handlers for graceful shutdown
+    signal.signal(signal.SIGINT, lambda sig, frame: exit(0))
+    signal.signal(signal.SIGTERM, lambda sig, frame: exit(0))
     
-    if len(sys.argv) < 4:
-        print(ERROR_CONSOLE_BOLD_TEXT + "Insufficient arguments!" + NORMAL_CONSOLE_TEXT)
-        sys.exit(1)
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(
+        description='DroneEngage Python Client Module',
+        add_help=False  # We'll handle help manually to show our custom usage
+    )
     
-    module_name = sys.argv[1]
-    target_port = int(sys.argv[2])
-    listen_port = int(sys.argv[3])
+    parser.add_argument('module_name', nargs='?', help='Name of the module')
+    parser.add_argument('de_comm_port', nargs='?', type=int, default=60000, help='DroneEngageCommunicator (de_comm) port (default: 60000)')
+    parser.add_argument('listen_port', nargs='?', type=int, default=61111, help='Listen port (default: 61111)')
+    parser.add_argument('-h', '--help', action='store_true', help='Show help message')
+    
+    args = parser.parse_args()
+    
+    # Show help if requested or missing module name
+    if args.help or not args.module_name:
+        print_usage()
+        exit(0 if args.help else 1)
+    
+    module_name = args.module_name
+    target_port = args.de_comm_port
+    listen_port = args.listen_port
     module_id = generate_random_module_id()
     
     print(INFO_CONSOLE_TEXT + "Initializing module..." + NORMAL_CONSOLE_TEXT)
@@ -465,10 +515,15 @@ if __name__ == "__main__":
     print(SUCCESS_CONSOLE_BOLD_TEXT + "Module running!" + NORMAL_CONSOLE_TEXT)
     
     # Main loop
-    while True:
-        time.sleep(1)
-        print("Module RUNNING")
-        send_msg()
+    try:
+        while True:
+            time.sleep(1)
+            print("Module RUNNING")
+            send_msg()
+    except KeyboardInterrupt:
+        print(INFO_CONSOLE_TEXT + "Shutting down gracefully..." + NORMAL_CONSOLE_TEXT)
+        cModule.uninit()
+        print(SUCCESS_CONSOLE_BOLD_TEXT + "Module exited" + NORMAL_CONSOLE_TEXT)
 ```
 
 ## Running the Example
@@ -476,15 +531,22 @@ if __name__ == "__main__":
 ```bash
 # Start DroneEngage communicator (typically on port 60000)
 
-# Run Python module
-python client.py MyPythonModule 60000 61233
-```
+# Run Python module with help
+python client.py --help
 
-The module will:
-1. Connect to the communicator on port 60000
-2. Listen for messages on port 61233
-3. Appear in the WebClient Details tab
-4. Send periodic "Hello from Python" messages
+# Run with all arguments
+python client.py MyPythonModule 60000 61233
+
+# Run with default ports
+python client.py MyPythonModule
+
+# The module will:
+# 1. Connect to the communicator on port 60000
+# 2. Listen for messages on port 61233 (or default 61111)
+# 3. Appear in the WebClient Details tab
+# 4. Send periodic "Hello from Python" messages
+# 5. Handle graceful shutdown on Ctrl+C
+```
 
 ## Message Filtering
 

@@ -33,11 +33,12 @@ https://github.com/DroneEngage/droneengage_databus
 #### C++ Implementation
 - **[C++ Core Library](client/src/de_common/README.md)** - C++17 implementation with detailed protocol documentation
 - **[C++ Examples](client/test/README.md)** - Sample applications demonstrating:
-  - Basic module communication
+  - Basic module communication with comprehensive help system
   - Binary data transmission (images)
   - MAVLink message handling
   - Adaptive rate control (sender/receiver)
   - Queue-based processing
+  - Robust input handling and user interaction
 
 #### Python Implementation
 - **[Python Library](python/README.md)** - Python 3.6+ implementation with:
@@ -63,7 +64,9 @@ cd client
 mkdir build && cd build
 cmake ..
 make
-./client MyModule 60000 61111
+./client --help                    # Show comprehensive help
+./client MyModule 60000 61111      # Run with all arguments
+./client MyModule                  # Uses default ports
 ```
 See [C++ Examples README](client/test/README.md) for detailed usage.
 
@@ -71,7 +74,9 @@ See [C++ Examples README](client/test/README.md) for detailed usage.
 ```bash
 cd python
 pip install colorama
-python client.py MyModule 60000 61233
+python client.py --help              # Show comprehensive help
+python client.py MyModule 60000 61233  # Run with all arguments
+python client.py MyModule             # Uses default ports
 ```
 See [Python README](python/README.md) for detailed usage.
 
@@ -79,7 +84,9 @@ See [Python README](python/README.md) for detailed usage.
 ```bash
 cd nodejs
 npm install
-node client.js MyModule 60000 61234
+node client.js --help               # Show comprehensive help
+node client.js MyModule 60000 61234   # Run with all arguments  
+node client.js MyModule              # Uses default ports
 ```
 See [Node.js README](nodejs/README.md) for detailed usage.
 
@@ -94,6 +101,10 @@ All implementations provide:
 - **Thread-Safe Operations** - Concurrent message handling
 - **Periodic ID Broadcasting** - Automatic module identification
 - **High-Level Facade API** - Simplified interface for common operations
+- **Comprehensive Help System** - Built-in help with `-h/--help` flags
+- **Flexible Argument Parsing** - Support for optional arguments with defaults
+- **Robust Input Handling** - Cross-platform compatible user interaction
+- **Enhanced Error Handling** - Clear validation and error messages
 
 ## Architecture
 
