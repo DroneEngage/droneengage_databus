@@ -8,10 +8,13 @@ import time
 class CUDPClient(object):
     
     _instance = None
+    _lock = threading.Lock()
     
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
-            cls._instance = super(CUDPClient, cls).__new__(cls)
+            with cls._lock:
+                if cls._instance is None:
+                    cls._instance = super(CUDPClient, cls).__new__(cls)
         return cls._instance
     
     
@@ -39,6 +42,7 @@ class CUDPClient(object):
         self.m_callback = onReceiveCallback
         self.m_SocketFD = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.m_SocketFD.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.m_SocketFD.settimeout(1.0)  # Add timeout to allow graceful shutdown
         self.m_ModuleAddress = (host, listeningPort)
         self.m_CommunicatorModuleAddress = (targetIP, broadcastPort)
         self.m_SocketFD.bind(self.m_ModuleAddress)
@@ -63,29 +67,53 @@ class CUDPClient(object):
 
     def stop(self):
         self.m_stopped_called = True
+        
+        # Close socket first to stop blocking operations
         if self.m_SocketFD != -1:
-            self.m_SocketFD.close()
+            try:
+                self.m_SocketFD.close()
+            except Exception as e:
+                print(f"Error closing socket: {e}")
+            finally:
+                self.m_SocketFD = -1
+        
+        # Wait for threads to finish
         if self.m_starrted:
-            self.m_threadCreateUDPSocket.join()
-            self.m_threadSenderID.join()
-        del self.m_ModuleAddress
-        del self.m_CommunicatorModuleAddress
+            try:
+                if self.m_threadCreateUDPSocket and self.m_threadCreateUDPSocket.is_alive():
+                    self.m_threadCreateUDPSocket.join(timeout=5.0)
+                if self.m_threadSenderID and self.m_threadSenderID.is_alive():
+                    self.m_threadSenderID.join(timeout=5.0)
+            except Exception as e:
+                print(f"Error joining threads: {e}")
+        
+        # Clear references properly
+        self.m_ModuleAddress = None
+        self.m_CommunicatorModuleAddress = None
 
     def InternalReceiverEntry(self):
         receivedChunks = []
         while not self.m_stopped_called:
-            received, cliaddr = self.m_SocketFD.recvfrom(self.MAXLINE)
-            if len(received) > 0:
-                chunkNumber = (received[1] << 8) | received[0]
-                if chunkNumber == 0:
-                    receivedChunks = []
-                receivedChunks.append(received[2:])
-                if chunkNumber == 0xFFFF:
-                    concatenatedData = b''.join(receivedChunks)
-                    #concatenatedData += b"\0"
-                    if self.m_callback:
-                        self.m_callback(concatenatedData, len(concatenatedData))
-                    receivedChunks = []
+            try:
+                received, cliaddr = self.m_SocketFD.recvfrom(self.MAXLINE)
+                if len(received) > 0:
+                    chunkNumber = (received[1] << 8) | received[0]
+                    if chunkNumber == 0:
+                        receivedChunks = []
+                    receivedChunks.append(received[2:])
+                    if chunkNumber == 0xFFFF:
+                        concatenatedData = b''.join(receivedChunks)
+                        #concatenatedData += b"\0"
+                        if self.m_callback:
+                            self.m_callback(concatenatedData, len(concatenatedData))
+                        receivedChunks = []
+            except socket.timeout:
+                # Timeout is expected - allows checking m_stopped_called
+                continue
+            except Exception as e:
+                if not self.m_stopped_called:
+                    print(f"Error in receiver thread: {e}")
+                break
 
 
     def setJsonId(self, jsonID):
@@ -93,20 +121,27 @@ class CUDPClient(object):
 
     def InternelSenderIDEntry(self):
         while not self.m_stopped_called:
-            with self.m_lock2:
-                if self.m_JsonID:
-                    msg = self.m_JsonID
-                    self.sendMSG(msg.encode(), len(msg))
-            time.sleep(1)
+            try:
+                with self.m_lock2:
+                    if self.m_JsonID and not self.m_stopped_called:
+                        msg = self.m_JsonID
+                        self.sendMSG(msg.encode(), len(msg))
+                time.sleep(1)
+            except Exception as e:
+                if not self.m_stopped_called:
+                    print(f"Error in sender thread: {e}")
+                break
 
     def sendMSG(self, msg, length):
         with self.m_lock:
+            if self.m_stopped_called:
+                return
             try:
                 remaining_length = length
                 offset = 0
                 chunk_number = 0
 
-                while remaining_length > 0:
+                while remaining_length > 0 and not self.m_stopped_called:
                     chunk_length = min(self.m_chunkSize, remaining_length)
                     remaining_length -= chunk_length
 
@@ -140,4 +175,5 @@ class CUDPClient(object):
                     chunk_number += 1
 
             except Exception as e:
-                print(f"DEBUG: InternelSenderIDEntry EXIT\n{e}")
+                if not self.m_stopped_called:
+                    print(f"DEBUG: InternelSenderIDEntry EXIT\n{e}")

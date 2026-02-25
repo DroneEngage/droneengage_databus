@@ -7,6 +7,41 @@ const { INFO_CONSOLE_TEXT, INFO_CONSOLE_BOLD_TEXT, NORMAL_CONSOLE_TEXT, SUCCESS_
 
 const DEFAULT_UDP_DATABUS_PACKET_SIZE = 8192;
 
+let shutdownRequested = false;
+let intervalId = null;
+
+// Signal handlers for graceful shutdown
+process.on('SIGINT', () => {
+    console.log(`\n${INFO_CONSOLE_TEXT}Received SIGINT, shutting down gracefully...${NORMAL_CONSOLE_TEXT}`);
+    shutdownRequested = true;
+    if (intervalId) {
+        clearInterval(intervalId);
+    }
+    cleanupAndExit();
+});
+
+process.on('SIGTERM', () => {
+    console.log(`\n${INFO_CONSOLE_TEXT}Received SIGTERM, shutting down gracefully...${NORMAL_CONSOLE_TEXT}`);
+    shutdownRequested = true;
+    if (intervalId) {
+        clearInterval(intervalId);
+    }
+    cleanupAndExit();
+});
+
+function cleanupAndExit() {
+    console.log(`${INFO_CONSOLE_TEXT}Cleaning up resources...${NORMAL_CONSOLE_TEXT}`);
+    try {
+        if (cModule && typeof cModule.uninit === 'function') {
+            cModule.uninit();
+        }
+    } catch (error) {
+        console.error(`${ERROR_CONSOLE_TEXT}Error during cleanup: ${error.message}${NORMAL_CONSOLE_TEXT}`);
+    }
+    console.log(`${SUCCESS_CONSOLE_BOLD_TEXT}Client Module EXIT${NORMAL_CONSOLE_TEXT}`);
+    process.exit(0);
+}
+
 const cModule = new CModule();
 const baseFacade = new CMyFacade(cModule);
 
@@ -37,25 +72,77 @@ function sendMsg() {
     baseFacade.sendErrorMessage("", NOTIFICATION_TYPE_NOTICE, ERROR_USER_DEFINED, NOTIFICATION_TYPE_INFO, "Hello from Node.js");
 }
 
-if (require.main === module) {
-    console.log(INFO_CONSOLE_BOLD_TEXT + "This module can be used as follows:" + NORMAL_CONSOLE_TEXT);
-    console.log(SUCCESS_CONSOLE_BOLD_TEXT + "./client sample_mod_js 60000 61111" + NORMAL_CONSOLE_TEXT);
-    console.log(INFO_CONSOLE_BOLD_TEXT + "If the drone engage is running on port 60000 it will connect to it and appear in the WebClient Details tab as a module named sample_mod_js." + NORMAL_CONSOLE_TEXT);
-    console.log("Press any key to continue ...");
-    
-    
+function printUsage() {
+    console.log(INFO_CONSOLE_BOLD_TEXT + "DroneEngage Node.js Client Module" + NORMAL_CONSOLE_TEXT);
+    console.log();
+    console.log(SUCCESS_CONSOLE_BOLD_TEXT + "USAGE:" + NORMAL_CONSOLE_TEXT);
+    console.log("  node client.js [OPTIONS] MODULE_NAME de_comm_port LISTEN_PORT");
+    console.log();
+    console.log(SUCCESS_CONSOLE_BOLD_TEXT + "ARGUMENTS:" + NORMAL_CONSOLE_TEXT);
+    console.log("  MODULE_NAME    Name of the module (e.g., DE_Plugin, My_Custom_DE_Module)");
+    console.log("  de_comm_port    Port where DE Communicator (de_comm) is running (default: 60000)");
+    console.log("  LISTEN_PORT    Port for this module to listen on (default: 61111)");
+    console.log();
+    console.log(SUCCESS_CONSOLE_BOLD_TEXT + "OPTIONS:" + NORMAL_CONSOLE_TEXT);
+    console.log("  -h, --help     Show this help message and exit");
+    console.log();
+    console.log(SUCCESS_CONSOLE_BOLD_TEXT + "EXAMPLES:" + NORMAL_CONSOLE_TEXT);
+    console.log("  node client.js sample_mod_js 60000 61111");
+    console.log("  node client.js JS_Plugin 60000 61233");
+    console.log();
+    console.log(INFO_CONSOLE_BOLD_TEXT + "DESCRIPTION:" + NORMAL_CONSOLE_TEXT);
+    console.log("  This client connects to a DE Communicator (de_comm) and appears in the");
+    console.log("  WebClient Details tab as a module with the specified name.");
+    console.log("  The module supports sending and receiving telemetry messages.");
+}
+
+function parseArguments() {
     const args = process.argv.slice(2);
-    if (args.length < 3) {
-        waitForKeyPress(() => {
-            console.log(INFO_CONSOLE_BOLD_TEXT + "Insufficient arguments. Usage: app module_name broker_port(60000) listen_port(60003)  e.g.: node client.js nodejs 60000 61234" + NORMAL_CONSOLE_TEXT);
-            process.exit(1);
-        });
-        return; // Exit the current execution context
+    const options = {
+        help: false,
+        moduleName: null,
+        deCommPort: 60000,
+        listenPort: 61111
+    };
+
+    for (let i = 0; i < args.length; i++) {
+        const arg = args[i];
+        if (arg === '-h' || arg === '--help') {
+            options.help = true;
+        } else if (!options.moduleName) {
+            options.moduleName = arg;
+        } else if (!options.deCommPortSet) {
+            options.deCommPort = parseInt(arg);
+            options.deCommPortSet = true;
+        } else if (!options.listenPortSet) {
+            options.listenPort = parseInt(arg);
+            options.listenPortSet = true;
+        }
     }
 
-    const moduleName = args[0];
-    const targetPort = parseInt(args[1]);
-    const listenPort = parseInt(args[2]);
+    return options;
+}
+
+if (require.main === module) {
+    const options = parseArguments();
+    
+    // Show help if requested or missing module name
+    if (options.help || !options.moduleName) {
+        printUsage();
+        if (!options.help) {
+            console.log("Press any key to continue ...");
+            waitForKeyPress(() => {
+                process.exit(1);
+            });
+        } else {
+            process.exit(0);
+        }
+        return;
+    }
+
+    const moduleName = options.moduleName;
+    const targetPort = options.deCommPort;
+    const listenPort = options.listenPort;
 
     const moduleId = generateRandomModuleId();
 
@@ -81,10 +168,13 @@ if (require.main === module) {
 
     console.log("Client Module RUNNING");
 
-    setInterval(() => {
-        console.log("Client Module RUNNING");
-        sendMsg();
+    // Replace infinite setInterval with shutdown-aware loop
+    intervalId = setInterval(() => {
+        if (!shutdownRequested) {
+            console.log("Client Module RUNNING");
+            sendMsg();
+        } else {
+            clearInterval(intervalId);
+        }
     }, 1000);
-
-    console.log("EXIT");
 }

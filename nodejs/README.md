@@ -468,7 +468,7 @@ function sendMsg() {
 
 if (require.main === module) {
     console.log(INFO_CONSOLE_BOLD_TEXT + "Node.js DroneEngage Module" + NORMAL_CONSOLE_TEXT);
-    console.log(SUCCESS_CONSOLE_BOLD_TEXT + "Usage: node client.js MODULE_NAME BROKER_PORT LISTEN_PORT" + NORMAL_CONSOLE_TEXT);
+    console.log(SUCCESS_CONSOLE_BOLD_TEXT + "Usage: node client.js MODULE_NAME DE_COMM_PORT LISTEN_PORT" + NORMAL_CONSOLE_TEXT);
     console.log(INFO_CONSOLE_BOLD_TEXT + "Example: node client.js nodejs 60000 61234" + NORMAL_CONSOLE_TEXT);
     console.log("Press any key to continue ...");
     

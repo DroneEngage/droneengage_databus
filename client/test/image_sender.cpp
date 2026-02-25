@@ -2,6 +2,7 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <limits>
 
 #include "../src/de_common/helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
@@ -51,7 +52,10 @@ int main(int argc, char* argv[])
     std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "./image_serner ./img.jpeg" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     std::cout << _INFO_CONSOLE_BOLD_TEXT << "It will connect to a running DroneEngage communicator on port 60000."  << _NORMAL_CONSOLE_TEXT_ << std::endl;
     std::cout << _INFO_CONSOLE_BOLD_TEXT << "Ot will send the image to WebClient every 10 seconds."  << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    std::cout << "Press any key to continue ..." << std::endl;
+    std::cout << "Press ENTER to continue ..." << std::endl;
+    // Clear any leftover characters in the input buffer
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     std::cin.get();
 
     if (argc < 2)

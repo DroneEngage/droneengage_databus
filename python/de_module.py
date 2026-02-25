@@ -28,10 +28,13 @@ HARDWARE_TYPE_CPU = 1
 class CModule(object):
 
     _instance = None
+    _lock = threading.Lock()
 
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
-            cls._instance = super(CModule, cls).__new__(cls)
+            with cls._lock:
+                if cls._instance is None:
+                    cls._instance = super(CModule, cls).__new__(cls)
         return cls._instance
     
     def __init__(self):
@@ -181,10 +184,10 @@ class CModule(object):
 
                 messageType = jMsg[ANDRUAV_PROTOCOL_MESSAGE_TYPE]
                 if messageType == TYPE_AndruavModule_ID:
-                    moduleID = cmd["f"]
-
                     if "f" not in cmd:
                         return
+                    moduleID = cmd["f"]
+                    
                     if ANDRUAV_PROTOCOL_SENDER not in moduleID:
                         return
                     if ANDRUAV_PROTOCOL_GROUP_ID not in moduleID:

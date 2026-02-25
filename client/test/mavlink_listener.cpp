@@ -1,5 +1,7 @@
 
 
+#include <iostream>
+#include <limits>
 #include "../src/de_common/helpers/colors.hpp"
 #include "../src/de_common/de_databus/de_module.hpp"
 #include "../src/de_common/de_databus/de_facade_base.hpp"
@@ -60,7 +62,10 @@ int main (int argc, char *argv[])
 
     std::cout << _INFO_CONSOLE_BOLD_TEXT << "This module will subscribe in DroneEngage that runs on port 60000."  << _NORMAL_CONSOLE_TEXT_ << std::endl;
     std::cout << _INFO_CONSOLE_BOLD_TEXT << "It will receive mavlink messages that is sent by mav link module."  << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    std::cout << "Press any key to continue ..." << std::endl;
+    std::cout << "Press ENTER to continue ..." << std::endl;
+    // Clear any leftover characters in the input buffer
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     std::cin.get();
 
     // Define a Module

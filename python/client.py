@@ -3,6 +3,8 @@ import json
 import random
 import time
 import threading
+import argparse
+import signal
 
 from de_module import *
 from udpClient import *
@@ -13,30 +15,75 @@ from de_facade_base import *
 
 DEFAULT_UDP_DATABUS_PACKET_SIZE = 8192 
 
-cModule = CModule()
+shutdown_requested = False
 
-my_facade_class = MyFacade (cModule)
-
-def generate_random_module_id():
-    return ''.join(random.choice('0123456789') for _ in range(12))
+def signal_handler(signum, frame):
+    global shutdown_requested
+    print(f"\n{INFO_CONSOLE_TEXT}Received signal {signum}, shutting down gracefully...{NORMAL_CONSOLE_TEXT}")
+    shutdown_requested = True
 
 def send_msg():
    my_facade_class.sendErrorMessage("",NOTIFICATION_TYPE_NOTICE, ERROR_USER_DEFINED, NOTIFICATION_TYPE_INFO,"Hello from python")
 
-if __name__ == "__main__":
-    print(INFO_CONSOLE_BOLD_TEXT + "This module can be used as follows:" + NORMAL_CONSOLE_TEXT)
-    print(SUCCESS_CONSOLE_BOLD_TEXT + "python client MODULE_NAME 60000 61111" + NORMAL_CONSOLE_TEXT)
-    print(INFO_CONSOLE_BOLD_TEXT + "If drone engage is running on port 60000 it will connect to it and appears in WebClient Details tab as a module named sample_mod_py." + NORMAL_CONSOLE_TEXT)
-    print("Press any key to continue ...")
-    
-    if len(sys.argv) < 4:
-        input()
-        print(INFO_CONSOLE_BOLD_TEXT + "Insufficient arguments. Usage: app module_name broker_port(60000) listen_port(60003) e.g. python client.py PY_Plugin 60000 61233" + NORMAL_CONSOLE_TEXT)
-        exit(1)
+def generate_random_module_id():
+    return ''.join(random.choice('0123456789') for _ in range(12))
 
-    module_name = sys.argv[1]
-    target_port = int(sys.argv[2])
-    listen_port = int(sys.argv[3])
+cModule = CModule()
+my_facade_class = MyFacade(cModule)
+
+def print_usage():
+    """Print detailed usage information"""
+    print(INFO_CONSOLE_BOLD_TEXT + "DroneEngage Python Client Module" + NORMAL_CONSOLE_TEXT)
+    print()
+    print(SUCCESS_CONSOLE_BOLD_TEXT + "USAGE:" + NORMAL_CONSOLE_TEXT)
+    print("  python client.py [OPTIONS] MODULE_NAME de_comm_port LISTEN_PORT")
+    print()
+    print(SUCCESS_CONSOLE_BOLD_TEXT + "ARGUMENTS:" + NORMAL_CONSOLE_TEXT)
+    print("  MODULE_NAME    Name of the module (e.g., DE_Plugin, My_Custom_DE_Module)")
+    print("  de_comm_port    Port where DE Communicator (de_comm) is running (default: 60000)")
+    print("  LISTEN_PORT    Port for this module to listen on (default: 61111)")
+    print()
+    print(SUCCESS_CONSOLE_BOLD_TEXT + "OPTIONS:" + NORMAL_CONSOLE_TEXT)
+    print("  -h, --help     Show this help message and exit")
+    print()
+    print(SUCCESS_CONSOLE_BOLD_TEXT + "EXAMPLES:" + NORMAL_CONSOLE_TEXT)
+    print("  python client.py sample_mod_py 60000 61111")
+    print("  python client.py PY_Plugin 60000 61233")
+    print()
+    print(INFO_CONSOLE_BOLD_TEXT + "DESCRIPTION:" + NORMAL_CONSOLE_TEXT)
+    print("  This client connects to a DE Communicator (de_comm) and appears in the")
+    print("  WebClient Details tab as a module with the specified name.")
+    print("  The module supports sending and receiving telemetry messages.")
+
+if __name__ == "__main__":
+    # Set up signal handlers for graceful shutdown
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+    
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(
+        description='DroneEngage Python Client Module',
+        add_help=False  # We'll handle help manually to show our custom usage
+    )
+    
+    parser.add_argument('module_name', nargs='?', help='Name of the module')
+    parser.add_argument('de_comm_port', nargs='?', type=int, default=60000, help='DroneEngageCommunicator (de_comm) port (default: 60000)')
+    parser.add_argument('listen_port', nargs='?', type=int, default=61111, help='Listen port (default: 61111)')
+    parser.add_argument('-h', '--help', action='store_true', help='Show help message')
+    
+    args = parser.parse_args()
+    
+    # Show help if requested
+    if args.help or not args.module_name:
+        print_usage()
+        if not args.help:
+            print("Press any key to continue ...")
+            input()
+        exit(0 if args.help else 1)
+    
+    module_name = args.module_name
+    target_port = args.de_comm_port
+    listen_port = args.listen_port
 
     module_id = generate_random_module_id()
 
@@ -62,13 +109,17 @@ if __name__ == "__main__":
 
     print("Client Module RUNNING ")
 
-    while True:
-        time.sleep(1)
-        print("Client Module RUNNING ")
-        send_msg()
-
-    #ifdef DEBUG
-    print("EXIT ")
-    #endif
+    try:
+        while not shutdown_requested:
+            time.sleep(1)
+            if not shutdown_requested:
+                print("Client Module RUNNING ")
+                send_msg()
+    except KeyboardInterrupt:
+        print(f"\n{INFO_CONSOLE_TEXT}Keyboard interrupt received, shutting down...{NORMAL_CONSOLE_TEXT}")
+    finally:
+        print(f"{INFO_CONSOLE_TEXT}Cleaning up resources...{NORMAL_CONSOLE_TEXT}")
+        cModule.uninit()
+        print(f"{SUCCESS_CONSOLE_TEXT}Client Module EXIT{NORMAL_CONSOLE_TEXT}")
 
     

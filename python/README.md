@@ -428,7 +428,7 @@ def send_msg():
 
 if __name__ == "__main__":
     print(INFO_CONSOLE_BOLD_TEXT + "Python DroneEngage Module" + NORMAL_CONSOLE_TEXT)
-    print(SUCCESS_CONSOLE_BOLD_TEXT + "Usage: python client.py MODULE_NAME BROKER_PORT LISTEN_PORT" + NORMAL_CONSOLE_TEXT)
+    print(SUCCESS_CONSOLE_BOLD_TEXT + "Usage: python client.py MODULE_NAME DE_COMM_PORT LISTEN_PORT" + NORMAL_CONSOLE_TEXT)
     print(INFO_CONSOLE_BOLD_TEXT + "Example: python client.py PY_Plugin 60000 61233" + NORMAL_CONSOLE_TEXT)
     
     if len(sys.argv) < 4:

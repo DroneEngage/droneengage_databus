@@ -33,16 +33,29 @@ make
 
 ### 1. client.cpp - Basic Module Communication
 
-**Purpose:** Demonstrates basic module registration and periodic message sending.
+**Purpose:** Demonstrates basic module registration and periodic message sending with comprehensive help system.
 
 **Usage:**
 ```bash
-./client <module_name> <broker_port> <listen_port>
-./client sample_mod 60000 61111
+./client [OPTIONS] MODULE_NAME [DE_COMM_PORT] [LISTEN_PORT]
+./client sample_mod_cpp 60000 61111
+./client CPP_Plugin                    # Uses default ports
+./client --help                        # Show help
 ```
 
+**Arguments:**
+- **MODULE_NAME** (required): Name of the module (e.g., DE_Plugin, My_Custom_DE_Module)
+- **DE_COMM_PORT** (optional): Port where DE Communicator is running (default: 60000)
+- **LISTEN_PORT** (optional): Port for this module to listen on (default: 61111)
+
+**Options:**
+- **-h, --help**: Show comprehensive help message and exit
+
 **Key Features:**
+- Comprehensive help system with colored output
 - Module registration with random ID generation
+- Flexible argument parsing with defaults
+- Input validation with clear error messages
 - Periodic message transmission (every 1 second)
 - Demonstrates `sendJMSG()` for JSON messages
 - Empty message filter (receives no messages)
@@ -50,6 +63,22 @@ make
 
 **Code Highlights:**
 ```cpp
+// Help system
+void printUsage() {
+    std::cout << _INFO_CONSOLE_BOLD_TEXT << "DroneEngage C++ Client Module" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    // ... comprehensive help output
+}
+
+// Argument parsing with defaults and validation
+if (argc < 2) {
+    printUsage();
+    return 1;
+}
+
+// Parse optional port arguments with error handling
+int target_port = (argc >= 3) ? std::stoi(argv[2]) : 60000;
+int listen_port = (argc >= 4) ? std::stoi(argv[3]) : 61111;
+
 // Define module with random ID
 cModule.defineModule(MODULE_CLASS_GENERIC, module_name, module_id, "0.0.1", Json_de::array());
 
@@ -146,7 +175,7 @@ void onReceive(const char* message, int len, Json_de jMsg) {
 
 **Usage:**
 ```bash
-./sender_adapter <module_name> <broker_port> [rate_ms]
+./sender_adapter <module_name> <DE_COMM_PORT> [rate_ms]
 ./sender_adapter sender_mod 60000 1000
 ```
 
@@ -193,7 +222,7 @@ cModule.sendJMSG("", message, TYPE_AndruavMessage_USER_RANGE_START, true);
 
 **Usage:**
 ```bash
-./receiver_adapter <module_name> <broker_port> [processing_delay_ms]
+./receiver_adapter <module_name> <DE_COMM_PORT> [processing_delay_ms]
 ./receiver_adapter receiver_mod 60000 1000
 ```
 
@@ -244,6 +273,53 @@ void processMessages() {
 ---
 
 ## Common Patterns
+
+### Help System Implementation
+
+Modern C++ clients should include comprehensive help systems:
+
+```cpp
+void printUsage() {
+    std::cout << _INFO_CONSOLE_BOLD_TEXT << "Application Name" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << std::endl;
+    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "USAGE:" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << "  ./app [OPTIONS] REQUIRED_ARG [OPTIONAL_ARG1] [OPTIONAL_ARG2]" << std::endl;
+    std::cout << std::endl;
+    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "ARGUMENTS:" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << "  REQUIRED_ARG    Description of required argument" << std::endl;
+    std::cout << "  OPTIONAL_ARG1   Description of optional argument (default: value)" << std::endl;
+    std::cout << std::endl;
+    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "OPTIONS:" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << "  -h, --help     Show this help message and exit" << std::endl;
+}
+
+int main(int argc, char* argv[]) {
+    // Check for help flags
+    bool showHelp = false;
+    if (argc > 1) {
+        std::string arg1(argv[1]);
+        if (arg1 == "-h" || arg1 == "--help") {
+            showHelp = true;
+        }
+    }
+
+    // Show help if requested or missing required args
+    if (showHelp || argc < 2) {
+        printUsage();
+        return showHelp ? 0 : 1;
+    }
+
+    // Parse arguments with validation
+    try {
+        std::string required_arg = argv[1];
+        int optional_arg1 = (argc >= 3) ? std::stoi(argv[2]) : DEFAULT_VALUE;
+        // ... continue with application logic
+    } catch (const std::exception& e) {
+        std::cout << _ERROR_CONSOLE_TEXT_ << "Error: " << e.what() << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        return 1;
+    }
+}
+```
 
 ### Module Initialization
 
@@ -418,6 +494,18 @@ The examples demonstrate thread-safe patterns:
 4. **Error Handling:** Check return values and handle connection failures
 5. **Resource Cleanup:** Properly delete allocated memory (see image_sender.cpp)
 6. **Rate Limiting:** Implement backpressure mechanisms for high-frequency data
+7. **Help System:** Always include comprehensive help with `-h/--help` flags
+8. **Argument Validation:** Validate user input with clear error messages
+9. **Default Values:** Provide sensible defaults for optional arguments
+10. **Colored Output:** Use console colors for better user experience
+11. **Input Handling:** Use robust input handling for user prompts:
+    ```cpp
+    #include <limits>
+    std::cout << "Press ENTER to continue ..." << std::endl;
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    std::cin.get();
+    ```
 
 ## Troubleshooting
 

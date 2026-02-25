@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <random>
+#include <limits>
 
 #include "../src/de_common/helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
@@ -96,11 +97,14 @@ int main (int argc, char *argv[])
     std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "./sender_adapter sender_mod 60000" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     std::cout << _INFO_CONSOLE_BOLD_TEXT << "It will connect to a running DroneEngage communicator on port 60000 and send messages of type TYPE_AndruavMessage_USER_RANGE_START."  << _NORMAL_CONSOLE_TEXT_ << std::endl;
     std::cout << _INFO_CONSOLE_BOLD_TEXT << "You can catch these messages using receiver_adapter."  << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    std::cout << "Press any key to continue ..." << std::endl;
+    std::cout << "Press ENTER to continue ..." << std::endl;
+    // Clear any leftover characters in the input buffer
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     std::cin.get();
 
     if (argc < 4) {
-        std::cerr << _INFO_CONSOLE_BOLD_TEXT << "Insufficient arguments. Usage: app module_name broker_port(60000) [rate(default 1000)]" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cerr << _INFO_CONSOLE_BOLD_TEXT << "Insufficient arguments. Usage: app module_name DE_COMM_PORT(60000) [rate(default 1000)]" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         return 1;
     }
     

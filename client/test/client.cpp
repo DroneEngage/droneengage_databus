@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <random>
+#include <limits>
 
 #include "../src/de_common/helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
@@ -76,23 +77,78 @@ void sendMsg ()
     cModule.sendJMSG("", message, TYPE_AndruavMessage_DUMMY, true);
 }
 
+void printUsage()
+{
+    std::cout << _INFO_CONSOLE_BOLD_TEXT << "DroneEngage C++ Client Module" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << std::endl;
+    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "USAGE:" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << "  ./client [OPTIONS] MODULE_NAME de_comm_port LISTEN_PORT" << std::endl;
+    std::cout << std::endl;
+    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "ARGUMENTS:" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << "  MODULE_NAME    Name of the module (e.g., DE_Plugin, My_Custom_DE_Module)" << std::endl;
+    std::cout << "  de_comm_port    Port where DE Communicator (de_comm) is running (default: 60000)" << std::endl;
+    std::cout << "  LISTEN_PORT    Port for this module to listen on (default: 61111)" << std::endl;
+    std::cout << std::endl;
+    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "OPTIONS:" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << "  -h, --help     Show this help message and exit" << std::endl;
+    std::cout << std::endl;
+    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "EXAMPLES:" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << "  ./client sample_mod_cpp 60000 61111" << std::endl;
+    std::cout << "  ./client CPP_Plugin 60000 61233" << std::endl;
+    std::cout << std::endl;
+    std::cout << _INFO_CONSOLE_BOLD_TEXT << "DESCRIPTION:" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << "  This client connects to a DE Communicator (de_comm) and appears in the" << std::endl;
+    std::cout << "  WebClient Details tab as a module with the specified name." << std::endl;
+    std::cout << "  The module supports sending and receiving telemetry messages." << std::endl;
+}
+
 int main (int argc, char *argv[])
 {
+    // Check for help flag first
+    bool showHelp = false;
+    if (argc > 1) {
+        std::string arg1(argv[1]);
+        if (arg1 == "-h" || arg1 == "--help") {
+            showHelp = true;
+        }
+    }
 
-    std::cout << _INFO_CONSOLE_BOLD_TEXT << "This module can be used as follows:"  << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "./client sample_mod 60000 61111" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    std::cout << _INFO_CONSOLE_BOLD_TEXT << "If drone engage is running on port 60000 it will connect to it and appears in WebClient Details tab as a module named sample_mod."  << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    std::cout << "Press any key to continue ..." << std::endl;
-    std::cin.get();
+    // Show help if requested or missing module name
+    if (showHelp || argc < 2) {
+        printUsage();
+        if (!showHelp) {
+            std::cout << "Press ENTER to continue ..." << std::endl;
+            // Clear any leftover characters in the input buffer
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cin.get();
+        }
+        return showHelp ? 0 : 1;
+    }
 
-    if (argc < 4) {
-        std::cout << _INFO_CONSOLE_BOLD_TEXT << "Insufficient arguments. Usage: app module_name broker_port(60000) listen_port(60003)" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-        return 1;
+    // Set defaults for optional arguments
+    std::string module_name = argv[1];
+    int target_port = 60000;  // default
+    int listen_port = 61111;  // default
+
+    // Parse optional port arguments
+    if (argc >= 3) {
+        try {
+            target_port = std::stoi(argv[2]);
+        } catch (const std::exception& e) {
+            std::cout << _ERROR_CONSOLE_TEXT_ << "Invalid de_comm_port: " << argv[2] << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            return 1;
+        }
     }
     
-    std::string module_name = argv[1];
-    int target_port = std::stoi(argv[2]);
-    int listen_port = std::stoi(argv[3]);
+    if (argc >= 4) {
+        try {
+            listen_port = std::stoi(argv[3]);
+        } catch (const std::exception& e) {
+            std::cout << _ERROR_CONSOLE_TEXT_ << "Invalid listen_port: " << argv[3] << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            return 1;
+        }
+    }
     
     std::string module_id = generateRandomModuleID();
     
