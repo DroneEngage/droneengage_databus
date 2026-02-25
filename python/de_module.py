@@ -7,8 +7,6 @@ from enum import Enum
 from messages import *
 from udpClient import *
 
-import json
-
 
 MODULE_FEATURE_RECEIVING_TELEMETRY      = "R"
 MODULE_FEATURE_SENDING_TELEMETRY        = "T"
@@ -152,8 +150,8 @@ class CModule(object):
         with self.m_lock:
             json_msg = {
                 INTERMODULE_MODULE_KEY: self.m_module_key,
-                INTERMODULE_ROUTING_TYPE: "CMD_TYPE_INTERMODULE",
-                ANDRUAV_PROTOCOL_MESSAGE_TYPE: "TYPE_AndruavModule_RemoteExecute",
+                INTERMODULE_ROUTING_TYPE: CMD_TYPE_INTERMODULE,
+                ANDRUAV_PROTOCOL_MESSAGE_TYPE: TYPE_AndruavModule_RemoteExecute,
                 ANDRUAV_PROTOCOL_MESSAGE_CMD: {"C": command_type}
             }
 
@@ -184,9 +182,9 @@ class CModule(object):
 
                 messageType = jMsg[ANDRUAV_PROTOCOL_MESSAGE_TYPE]
                 if messageType == TYPE_AndruavModule_ID:
-                    if "f" not in cmd:
+                    if JSON_INTERMODULE_PARTY_RECORD not in cmd:
                         return
-                    moduleID = cmd["f"]
+                    moduleID = cmd[JSON_INTERMODULE_PARTY_RECORD]
                     
                     if ANDRUAV_PROTOCOL_SENDER not in moduleID:
                         return

@@ -12,11 +12,13 @@ import threading
 from typing import Optional
 
 try:
-    from .udp_module import CModule, CMyFacade
+    from .de_module import CModule
+    from .facade_base import CFacade_Base
     from .colors import Colors
     from .messages import *
 except ImportError:
-    from udp_module import CModule, CMyFacade
+    from de_module import CModule
+    from facade_base import CFacade_Base
     from console_colors import Colors
     from messages import *
 
@@ -60,9 +62,9 @@ def send_msg():
     #     "t": "THIS IS A TEST MESSAGE",
     #     "long": "Received the likewise law graceful his. Nor might set along charm now equal green. Pleased yet equally correct colonel not one. Say anxious carried compact conduct sex general nay certain. Mrs for recommend exquisite household eagerness preserved now. My improved honoured he am ecstatic quitting greatest formerly."
     # }
-    # c_module.send_jmsg("", message, TYPE_AndruavMessage_DUMMY, True)
+    # c_module.sendJMSG("", message, TYPE_AndruavMessage_DUMMY, True)
     
-    base_facade.send_error_message("", NOTIFICATION_TYPE_NOTICE, ERROR_USER_DEFINED, 
+    base_facade.send_error_message("", ERROR_USER_DEFINED, NOTIFICATION_TYPE_NOTICE, 
                                   NOTIFICATION_TYPE_INFO, "Hello from Python")
 
 
@@ -145,10 +147,11 @@ def main():
     
     # Create module and facade
     c_module = CModule()
-    base_facade = CMyFacade(c_module)
+    base_facade = CFacade_Base()
+    base_facade.set_module(c_module)
     
     # Define a Module
-    c_module.define_module(
+    c_module.defineModule(
         "gen",                    # MODULE_CLASS_GENERIC
         module_name,
         module_id,
@@ -169,9 +172,6 @@ def main():
     except Exception as e:
         print(f"{Colors.ERROR_CONSOLE_TEXT}Failed to initialize module: {e}{Colors.NORMAL_CONSOLE_TEXT}")
         sys.exit(1)
-    
-    # Start receiving messages
-    c_module.start_receiving()
     
     print("Client Module RUNNING")
     

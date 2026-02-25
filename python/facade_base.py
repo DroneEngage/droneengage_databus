@@ -48,7 +48,7 @@ class FacadeBase:
         }
         
         if self._module:
-            self._module.send_jmsg(target_party_id, message, TYPE_AndruavMessage_RemoteExecute, True)
+            self._module.sendJMSG(target_party_id, message, TYPE_AndruavMessage_RemoteExecute, True)
         
         return
     
@@ -69,7 +69,7 @@ class FacadeBase:
         }
         
         if self._module:
-            self._module.send_jmsg(target_party_id, message, TYPE_AndruavMessage_Error, False)
+            self._module.sendJMSG(target_party_id, message, TYPE_AndruavMessage_Error, False)
         
         print(f"\n\033[92m -- sendErrorMessage \033[0m{description}")
         
@@ -90,7 +90,7 @@ class FacadeBase:
         
         # Send command
         if self._module:
-            self._module.send_jmsg(target_party_id, message, TYPE_AndruavMessage_CONFIG_STATUS, False)
+            self._module.sendJMSG(target_party_id, message, TYPE_AndruavMessage_CONFIG_STATUS, False)
         
         print(f"\n\033[96mAPI_sendConfigTemplate: module_key:{module_key}\033[0m")
         print(f"\n\033[96mAPI_sendConfigTemplate: json_file_content_json:{json.dumps(json_file_content_json)}\033[0m")
