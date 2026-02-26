@@ -7,7 +7,7 @@ This document describes the complete journey of a message from reception to proc
 The Python databus implements a message processing pipeline with three main components:
 1. **`de_module.py`** - Module management and UDP communication
 2. **`de_message_parser_base.py`** - Message parsing and command handling  
-3. **`facade_base.py`** - Reply generation and response handling
+3. **`de_facade_base.py`** - Reply generation and response handling
 
 ## Message Flow Architecture
 
@@ -131,7 +131,7 @@ def _handle_config_action(self, andruav_message: Dict[str, Any], cmd: Dict[str, 
 - `parse_remote_execute()` - Remote execution commands
 - `parse_command()` - Module-specific commands
 
-### 5. Reply Generation (`facade_base.py`)
+### 5. Reply Generation (`de_facade_base.py`)
 
 **Facade Pattern**: `FacadeBase` provides unified response interface
 

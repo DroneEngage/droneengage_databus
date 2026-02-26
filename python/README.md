@@ -11,7 +11,7 @@ This package provides Python equivalents of the following C++ classes:
 - `configFile.hpp/cpp` → `configFile.py` (ConfigFile class)
 - `localConfigFile.hpp/cpp` → `localConfigFile.py` (LocalConfigFile class)  
 - `de_message_parser_base.hpp/cpp` → `de_message_parser_base.py` (AndruavMessageParserBase class)
-- `de_facade_base.hpp/cpp` → `facade_base.py` (FacadeBase class)
+- `de_facade_base.hpp/cpp` → `de_facade_base.py` (FacadeBase class)
 - `nodejs/client.js` → `python_client.py` (Python client module)
 
 ## Features
@@ -40,7 +40,7 @@ pip install -e .
 
 ```python
 from de_module import CModule
-from facade_base import CFacade_Base
+from de_facade_base import CFacade_Base
 from messages import *
 
 # Create module instance (singleton)
@@ -87,7 +87,7 @@ python python_client.py MyPythonModule 60000 61111
 | `CConfigFile` | `ConfigFile` | `configFile.py` | Main configuration file management |
 | `CLocalConfigFile` | `LocalConfigFile` | `localConfigFile.py` | Local configuration with field operations |
 | `CAndruavMessageParserBase` | `AndruavMessageParserBase` | `de_message_parser_base.py` | Abstract message parser |
-| `CFacade_Base` | `FacadeBase` (exported as `CFacade_Base`) | `facade_base.py` | Facade for high-level operations |
+| `CFacade_Base` | `FacadeBase` (exported as `CFacade_Base`) | `de_facade_base.py` | Facade for high-level operations |
 
 ## Key Differences from C++ Implementation
 

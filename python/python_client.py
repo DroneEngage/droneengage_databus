@@ -13,12 +13,12 @@ from typing import Optional
 
 try:
     from .de_module import CModule
-    from .facade_base import CFacade_Base
+    from .de_facade_base import CFacade_Base
     from .colors import Colors
     from .messages import *
 except ImportError:
     from de_module import CModule
-    from facade_base import CFacade_Base
+    from de_facade_base import CFacade_Base
     from console_colors import Colors
     from messages import *
 
