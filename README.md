@@ -31,7 +31,7 @@ https://github.com/DroneEngage/droneengage_databus
 ### Language Implementations
 
 #### C++ Implementation
-- **[C++ Core Library](client/src/de_common/README.md)** - C++17 implementation with detailed protocol documentation
+- **[C++ Core Library](https://github.com/DroneEngage/droneengage_common)** - C++17 implementation with detailed protocol documentation
 - **[C++ Examples](client/test/README.md)** - Sample applications demonstrating:
   - Basic module communication with comprehensive help system
   - Binary data transmission (images)
