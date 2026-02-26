@@ -1,0 +1,59 @@
+# DroneEngage-DataBus
+
+DroneEngage-DataBus is a multi-language UDP-based communication framework for DroneEngage modules, part of the Ardupilot Cloud Ecosystem. It provides module registration, JSON/binary messaging, and automatic message chunking with implementations in C++, Python, and Node.js.
+
+## Core Context
+
+This is a communication library that enables drone modules to exchange messages via UDP protocol. The framework follows a layered architecture:
+
+- **DataBus Library**: Core communication layer with module management
+- **UDP Client**: Handles network communication with message chunking/reassembly
+- **de_comm**: Central communicator service (port 60000)
+
+### Key Components
+
+- **CModule**: Singleton module manager for registration and message handling
+- **FacadeBase**: Simplified API for response generation
+- **Message Parser**: Handles JSON/binary message processing and command dispatch
+- **UDP Client**: Low-level network communication with automatic chunking
+
+### Message Flow
+UDP Network → Module (`onReceive`) → Message Parser → Command Handler → Facade Base → Response generation
+
+Supports JSON and binary messages, inter-module routing, and automatic message chunking for large payloads.
+
+## Technical Constraints
+
+### Language Standards
+- **C++**: C++17 standard, camelCase variables, PascalCase classes
+- **Python**: Snake_case, type hints in newer code, threading.Lock() for singleton safety  
+- **Node.js**: camelCase, async/await support, EventEmitter pattern
+
+### Architectural Patterns
+- Singleton Pattern for module management (`CModule`)
+- Facade Pattern for simplified API (`FacadeBase`)
+- Template Method for message parsing workflow
+- Observer Pattern for message callbacks
+
+### Network Configuration
+- Default de_comm port: 60000
+- Default module listen ports: 61111-61234
+- UDP packet size: 8192 bytes (configurable)
+- Message filtering supported via `MESSAGE_FILTER` arrays
+
+### Module Features
+- Module registration with unique IDs and versions
+- Hardware verification (CPU type identification)
+- Telemetry sending/receiving capabilities
+- Message filtering by type
+- Cross-language compatibility through consistent UDP protocol
+
+## Usage Examples
+
+See `/examples` folder for complete implementation samples:
+- Basic module communication with comprehensive help system
+- Binary data transmission (images)
+- MAVLink message handling
+- Adaptive rate control (sender/receiver)
+- Queue-based processing
+- Robust input handling and user interaction
