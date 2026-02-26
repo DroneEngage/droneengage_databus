@@ -1,11 +1,45 @@
 const readline = require('readline');
 const dgram = require('dgram');
 const CModule = require('./de_module'); // Adjust the path as necessary
-const {CMyFacade} = require('./de_facade_base'); // Adjust path as necessary
-const { TYPE_AndruavMessage_DUMMY, NOTIFICATION_TYPE_NOTICE, ERROR_USER_DEFINED, NOTIFICATION_TYPE_INFO } = require('./messages'); // Adjust path as necessary
+const {CMyFacade} = require('./my_facade'); // Adjust path as necessary
+const { TYPE_AndruavMessage_RemoteExecute, TYPE_AndruavMessage_FlightControl, TYPE_AndruavMessage_GeoFence, TYPE_AndruavMessage_ExternalGeoFence, TYPE_AndruavMessage_Arm, TYPE_AndruavMessage_ChangeAltitude, TYPE_AndruavMessage_Land, TYPE_AndruavMessage_GuidedPoint, TYPE_AndruavMessage_CirclePoint, TYPE_AndruavMessage_DoYAW, TYPE_AndruavMessage_DistinationLocation, TYPE_AndruavMessage_ChangeSpeed, TYPE_AndruavMessage_TrackingTargetLocation, TYPE_AndruavMessage_UploadWayPoints, TYPE_AndruavMessage_RemoteControlSettings, TYPE_AndruavMessage_SET_HOME_LOCATION, TYPE_AndruavMessage_RemoteControl2, TYPE_AndruavMessage_LightTelemetry, TYPE_AndruavMessage_ServoChannel, TYPE_AndruavMessage_Sync_EventFire, TYPE_AndruavMessage_MAVLINK, TYPE_AndruavMessage_SWARM_MAVLINK, TYPE_AndruavMessage_MAKE_SWARM, TYPE_AndruavMessage_FollowHim_Request, TYPE_AndruavMessage_FollowMe_Guided, TYPE_AndruavMessage_UpdateSwarm, TYPE_AndruavMessage_UDPProxy_Info, TYPE_AndruavSystem_UdpProxy, TYPE_AndruavMessage_P2P_ACTION, TYPE_AndruavMessage_P2P_STATUS, NOTIFICATION_TYPE_NOTICE, ERROR_USER_DEFINED, NOTIFICATION_TYPE_INFO } = require('./messages'); // Adjust path as necessary
 const { INFO_CONSOLE_TEXT, INFO_CONSOLE_BOLD_TEXT, NORMAL_CONSOLE_TEXT, SUCCESS_CONSOLE_BOLD_TEXT } = require('./colors'); // Adjust path as necessary
 
 const DEFAULT_UDP_DATABUS_PACKET_SIZE = 8192;
+
+// Message filter matching C++ implementation
+const MESSAGE_FILTER = [
+    TYPE_AndruavMessage_RemoteExecute,
+    TYPE_AndruavMessage_FlightControl,
+    TYPE_AndruavMessage_GeoFence,
+    TYPE_AndruavMessage_ExternalGeoFence,
+    TYPE_AndruavMessage_Arm,
+    TYPE_AndruavMessage_ChangeAltitude,
+    TYPE_AndruavMessage_Land,
+    TYPE_AndruavMessage_GuidedPoint,
+    TYPE_AndruavMessage_CirclePoint,
+    TYPE_AndruavMessage_DoYAW,
+    TYPE_AndruavMessage_DistinationLocation,
+    TYPE_AndruavMessage_ChangeSpeed,
+    TYPE_AndruavMessage_TrackingTargetLocation,
+    TYPE_AndruavMessage_UploadWayPoints,
+    TYPE_AndruavMessage_RemoteControlSettings,
+    TYPE_AndruavMessage_SET_HOME_LOCATION,
+    TYPE_AndruavMessage_RemoteControl2,
+    TYPE_AndruavMessage_LightTelemetry,
+    TYPE_AndruavMessage_ServoChannel,
+    TYPE_AndruavMessage_Sync_EventFire,
+    TYPE_AndruavMessage_MAVLINK,
+    TYPE_AndruavMessage_SWARM_MAVLINK,
+    TYPE_AndruavMessage_MAKE_SWARM,
+    TYPE_AndruavMessage_FollowHim_Request,
+    TYPE_AndruavMessage_FollowMe_Guided,
+    TYPE_AndruavMessage_UpdateSwarm,
+    TYPE_AndruavMessage_UDPProxy_Info,
+    TYPE_AndruavSystem_UdpProxy,
+    TYPE_AndruavMessage_P2P_ACTION,
+    TYPE_AndruavMessage_P2P_STATUS
+];
 
 let shutdownRequested = false;
 let intervalId = null;
@@ -43,7 +77,8 @@ function cleanupAndExit() {
 }
 
 const cModule = new CModule();
-const baseFacade = new CMyFacade(cModule);
+const baseFacade = new CMyFacade();
+baseFacade.setModule(cModule);
 
 // Function to wait for a key press
 function waitForKeyPress(callback) {
@@ -154,7 +189,7 @@ if (require.main === module) {
         moduleName,
         moduleId,
         "0.0.1",
-        []
+        MESSAGE_FILTER
     );
 
     // Add features this module supports. [OPTIONAL]
