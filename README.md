@@ -74,9 +74,9 @@ See [C++ Examples README](client/test/README.md) for detailed usage.
 ```bash
 cd python
 pip install colorama
-python client.py --help              # Show comprehensive help
-python client.py MyModule 60000 61233  # Run with all arguments
-python client.py MyModule             # Uses default ports
+python python_client.py --help              # Show comprehensive help
+python python_client.py MyModule 60000 61233  # Run with all arguments
+python python_client.py MyModule             # Uses default ports
 ```
 See [Python README](python/README.md) for detailed usage.
 
