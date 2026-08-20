@@ -4,14 +4,28 @@ import json
 import time
 import threading
 from enum import Enum
-from messages import *
-from udpClient import *
+
+try:
+    from .colors import *
+    from .messages import *
+    from .udpClient import *
+except ImportError:
+    from colors import *
+    from messages import *
+    from udpClient import *
+
+
+import json
 
 
 MODULE_FEATURE_RECEIVING_TELEMETRY      = "R"
 MODULE_FEATURE_SENDING_TELEMETRY        = "T"
 MODULE_FEATURE_CAPTURE_IMAGE            = "C"
 MODULE_FEATURE_CAPTURE_VIDEO            = "V"
+MODULE_FEATURE_GPIO                     = "G"
+MODULE_FEATURE_AI_RECOGNITION           = "A"
+MODULE_FEATURE_TRACKING                 = "K"
+MODULE_FEATURE_P2P                      = "P"
 
 
 MODULE_CLASS_COMM                       = "comm"
@@ -19,6 +33,10 @@ MODULE_CLASS_FCB                        = "fcb"
 MODULE_CLASS_VIDEO                      = "camera"
 MODULE_CLASS_P2P                        = "p2p"
 MODULE_CLASS_GENERIC                    = "gen"
+MODULE_CLASS_GPIO                       = "gpio"
+MODULE_CLASS_A_RECOGNITION              = "ai_rec"
+MODULE_CLASS_TRACKING                   = "trk"
+MODULE_CLASS_VIEWLINK                   = "vlk"
 
 HARDWARE_TYPE_UNDEFINED = 0
 HARDWARE_TYPE_CPU = 1
@@ -26,13 +44,10 @@ HARDWARE_TYPE_CPU = 1
 class CModule(object):
 
     _instance = None
-    _lock = threading.Lock()
 
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
-            with cls._lock:
-                if cls._instance is None:
-                    cls._instance = super(CModule, cls).__new__(cls)
+            cls._instance = super(CModule, cls).__new__(cls)
         return cls._instance
     
     def __init__(self):
@@ -49,7 +64,7 @@ class CModule(object):
         self.m_FirstReceived = False
         self.m_module_features = []  # Initialize the list of module features
         self.m_hardware_serial = ""
-        self.m_hardware_serial_type = ""
+        self.m_hardware_serial_type = 0
         self.m_instance_time_stamp = time.time()
         self.m_lock = threading.RLock()
 
@@ -84,24 +99,15 @@ class CModule(object):
     
     def send_sys_msg(self, jmsg, andruav_message_id):
         full_message = {
-            ANDRUAV_PROTOCOL_TARGET_ID: SPECIAL_NAME_SYS_NAME,
+            ANDRUAV_PROTOCOL_TARGET_ID: ANDRUAV_PROTOCOL_SENDER_COMM_SERVER,
             INTERMODULE_ROUTING_TYPE: CMD_COMM_SYSTEM,
             ANDRUAV_PROTOCOL_MESSAGE_TYPE: andruav_message_id,
             ANDRUAV_PROTOCOL_MESSAGE_CMD: jmsg
         }
         msg = json.dumps(full_message)
-        self.send_msg(msg.encode(), len(msg))
+        self.sendMSG(msg.encode(), len(msg))
 
-    
     def sendJMSG(self, targetPartyID, jmsg, andruav_message_id, internal_message):
-        """Generate and sends JSON text string
-
-        Args:
-            targetPartyID (_type_): destination unit partyid
-            jmsg (_type_): _description_
-            andruav_message_id (_type_): _description_
-            internal_message (_type_): _description_
-        """
         with self.m_lock:
             fullMessage = {}
 
@@ -162,12 +168,19 @@ class CModule(object):
         self.sendMSG(message, datalength)
 
     def onReceive(self, message, len):
-        print(f"RX MSG: :len {len}:{message}")
+        """
+            This function is called from udpClient when a complete message has been received.
+        """
+        # print(f"RX MSG: :len {len}:{message}")
 
         try:
-            jMsg = json.loads(message)
+            # The JSON header is always null-terminated; any binary payload (not
+            # currently used by this module) would follow the null terminator.
+            null_index = message.find(b'\x00')
+            json_part = message[:null_index] if null_index != -1 else message
+            jMsg = json.loads(json_part)
 
-            print(f"RX MSG: jMsg{json.dumps(jMsg)}")
+            # print(f"RX MSG: jMsg{json.dumps(jMsg)}")
 
             if ANDRUAV_PROTOCOL_MESSAGE_TYPE not in jMsg:
                 return
@@ -175,17 +188,22 @@ class CModule(object):
                 return
 
             if jMsg[INTERMODULE_ROUTING_TYPE] == CMD_TYPE_INTERMODULE:
+                """
+                    CMD_TYPE_INTERMODULE messages section.
+                    These messages are sent by other modules to be consumed only 
+                    by modules and not to be sent outside DroneEngage unit.
+                """                    
                 if ANDRUAV_PROTOCOL_MESSAGE_CMD not in jMsg:
                     return
 
                 cmd = jMsg[ANDRUAV_PROTOCOL_MESSAGE_CMD]
 
-                messageType = jMsg[ANDRUAV_PROTOCOL_MESSAGE_TYPE]
-                if messageType == TYPE_AndruavModule_ID:
+                message_type = jMsg[ANDRUAV_PROTOCOL_MESSAGE_TYPE]
+                if message_type == TYPE_AndruavModule_ID:
                     if JSON_INTERMODULE_PARTY_RECORD not in cmd:
                         return
                     moduleID = cmd[JSON_INTERMODULE_PARTY_RECORD]
-                    
+
                     if ANDRUAV_PROTOCOL_SENDER not in moduleID:
                         return
                     if ANDRUAV_PROTOCOL_GROUP_ID not in moduleID:
@@ -195,7 +213,7 @@ class CModule(object):
                     self.m_group_id = moduleID[ANDRUAV_PROTOCOL_GROUP_ID]
 
                     if not self.m_FirstReceived:
-                        print(f" ** Communicator Server Found: m_party_id({self.m_party_id}) m_group_id({self.m_group_id})")
+                        print(SUCCESS_CONSOLE_BOLD_TEXT + " ** Communicator Server Found: " + SUCCESS_CONSOLE_TEXT +  "m_party_id(" + INFO_CONSOLE_TEXT + str(self.m_party_id) + SUCCESS_CONSOLE_TEXT + ") m_group_id(" + INFO_CONSOLE_TEXT + str(self.m_group_id) + SUCCESS_CONSOLE_TEXT + ")" + NORMAL_CONSOLE_TEXT)
                         self.createJSONID(False)
                         self.m_FirstReceived = True
 
@@ -204,7 +222,7 @@ class CModule(object):
 
                     return
 
-                elif messageType == TYPE_AndruavMessage_DUMMY:
+                elif message_type == TYPE_AndruavMessage_DUMMY:
                     print(f" TYPE_AndruavMessage_DUMMY {message}")
 
             if self.m_OnReceive:
@@ -213,10 +231,13 @@ class CModule(object):
         except Exception as e:
             print(f"ERROR:{e}")
 
-    def appendExtraField(self, name, ms):
-        self.m_stdinValues[name] = ms
-
+    
     def createJSONID(self, reSend):
+        """
+        Create TYPE_AndruavModule_ID - JSON message 
+        This message is essential to identify module to de-Communicator.
+        """
+        
         json_msg = {}
         
         json_msg[INTERMODULE_ROUTING_TYPE] = CMD_TYPE_INTERMODULE
@@ -228,8 +249,14 @@ class CModule(object):
         ms[JSON_INTERMODULE_MODULE_MESSAGES_LIST] = self.m_message_filter
         ms[JSON_INTERMODULE_MODULE_FEATURES] = self.m_module_features
         ms[JSON_INTERMODULE_MODULE_KEY] = self.m_module_key
-        ms[JSON_INTERMODULE_HARDWARE_ID] = self.m_hardware_serial
-        ms[JSON_INTERMODULE_HARDWARE_TYPE] = self.m_hardware_serial_type
+        # Only include hardware fields when a hardware serial has been set
+        # (via set_hardware). The C++ communicator enters its license-check
+        # branch when JSON_INTERMODULE_HARDWARE_ID is present, and expects
+        # JSON_INTERMODULE_HARDWARE_TYPE to be an int. Sending empty strings
+        # here causes json.exception.type_error.302 on the C++ side.
+        if self.m_hardware_serial:
+            ms[JSON_INTERMODULE_HARDWARE_ID] = self.m_hardware_serial
+            ms[JSON_INTERMODULE_HARDWARE_TYPE] = self.m_hardware_serial_type
         ms[JSON_INTERMODULE_VERSION] = self.m_module_version
         ms[JSON_INTERMODULE_RESEND] = reSend
         ms[JSON_INTERMODULE_TIMESTAMP_INSTANCE] = self.m_instance_time_stamp
@@ -241,4 +268,5 @@ class CModule(object):
         
         #print(json.dumps(json_msg, indent=4))
         
+        ## Store the message into cUDPClient
         self.cUDPClient.setJsonId(json.dumps(json_msg))

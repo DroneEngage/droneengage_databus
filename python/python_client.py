@@ -64,7 +64,7 @@ def send_msg():
     # }
     # c_module.sendJMSG("", message, TYPE_AndruavMessage_DUMMY, True)
     
-    base_facade.send_error_message("", ERROR_USER_DEFINED, NOTIFICATION_TYPE_NOTICE, 
+    base_facade.sendErrorMessage("", ERROR_USER_DEFINED, NOTIFICATION_TYPE_NOTICE, 
                                   NOTIFICATION_TYPE_INFO, "Hello from Python")
 
 
@@ -147,8 +147,7 @@ def main():
     
     # Create module and facade
     c_module = CModule()
-    base_facade = CFacade_Base()
-    base_facade.set_module(c_module)
+    base_facade = CFacade_Base(c_module)
     
     # Define a Module
     c_module.defineModule(
@@ -168,7 +167,7 @@ def main():
     
     # Initialize UDP communication
     try:
-        c_module.init("0.0.0.0", target_port, "0.0.0.0", listen_port, DEFAULT_UDP_DATABUS_PACKET_SIZE)
+        c_module.init("127.0.0.1", target_port, "0.0.0.0", listen_port, DEFAULT_UDP_DATABUS_PACKET_SIZE)
     except Exception as e:
         print(f"{Colors.ERROR_CONSOLE_TEXT}Failed to initialize module: {e}{Colors.NORMAL_CONSOLE_TEXT}")
         sys.exit(1)

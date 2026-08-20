@@ -1,3 +1,5 @@
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/DroneEngage/droneengage_databus)
+
 
 [![Ardupilot Cloud EcoSystem](https://cloud.ardupilot.org/_static/ardupilot_logo.png "Ardupilot Cloud EcoSystem")](https://cloud.ardupilot.org "Ardupilot Cloud EcoSystem") **Drone Engage** is part of Ardupilot Cloud Eco System
 
@@ -31,28 +33,34 @@ https://github.com/DroneEngage/droneengage_databus
 ### Language Implementations
 
 #### C++ Implementation
-- **[C++ Core Library](https://github.com/DroneEngage/droneengage_common)** - C++17 implementation with detailed protocol documentation
-- **[C++ Examples](client/test/README.md)** - Sample applications demonstrating:
-  - Basic module communication with comprehensive help system
-  - Binary data transmission (images)
-  - MAVLink message handling
-  - Adaptive rate control (sender/receiver)
-  - Queue-based processing
-  - Robust input handling and user interaction
+- **[C++ Core Library](https://github.com/DroneEngage/droneengage_common)** - C++17 implementation with detailed protocol documentation (included as a git submodule in `client/src/de_common/`)
+- **[C++ Examples](client/test/)** - Sample applications demonstrating:
+  - `client.cpp` - Basic module communication with comprehensive help system
+  - `image_sender.cpp` - Binary data transmission (images)
+  - `mavlink_listener.cpp` - MAVLink message listener
+  - `sender_adapter.cpp` / `receiver_adapter.cpp` - Adaptive rate control pair
 
 #### Python Implementation
-- **[Python Library](python/README.md)** - Python 3.6+ implementation with:
-  - Complete API reference
-  - Quick start guide
-  - Message handling examples
-  - Thread-safe operations
+- **[Python Library](python/)** - Python 3.6+ implementation with:
+  - `de_module.py` / `de_facade_base.py` / `configFile.py` - Core library modules
+  - `de_config_action_handler.py` - CONFIG_ACTION message handler
+  - `python_client.py` - Basic client sample
+  - Thread-safe operations with singleton pattern
 
 #### Node.js Implementation
-- **[Node.js Library](nodejs/README.md)** - Node.js 12+ implementation featuring:
+- **[Node.js Library](nodejs/)** - Node.js 12+ implementation featuring:
+  - `de_module.js` / `de_facade_base.js` / `udpClient.js` - Core library modules
+  - `de_config_action_handler.js` - CONFIG_ACTION message handler
+  - `client.js` - Basic client sample
   - Event-driven architecture with EventEmitter
   - Async/await support
-  - Complete API reference
-  - NPM package configuration
+
+#### Runnable Examples
+- **[Examples](examples/)** - Cross-language runnable examples:
+  - `de_module.py` - Python MAVLink listener
+  - `mavlink_listener.js` - Node.js MAVLink listener
+  - `image_sender.js` - Node.js binary image sender
+  - `sender_adapter.js` / `receiver_adapter.js` - Node.js adaptive rate control pair
 
 ## Quick Start
 
@@ -74,9 +82,8 @@ See [C++ Examples README](client/test/README.md) for detailed usage.
 ```bash
 cd python
 pip install colorama
-python python_client.py --help              # Show comprehensive help
 python python_client.py MyModule 60000 61233  # Run with all arguments
-python python_client.py MyModule             # Uses default ports
+python python_client.py MyModule              # Uses default ports
 ```
 See [Python README](python/README.md) for detailed usage.
 
@@ -89,6 +96,24 @@ node client.js MyModule 60000 61234   # Run with all arguments
 node client.js MyModule              # Uses default ports
 ```
 See [Node.js README](nodejs/README.md) for detailed usage.
+
+### Runnable Examples
+```bash
+# Python MAVLink listener
+cd examples
+python de_module.py 60000 61200
+
+# Node.js MAVLink listener
+node examples/mavlink_listener.js 60000 70014
+
+# Node.js image sender
+node examples/image_sender.js ../client/test/img.jpeg 60000 50000
+
+# Node.js adaptive rate control (run in two terminals)
+node examples/receiver_adapter.js receiver_mod 60000 500
+node examples/sender_adapter.js sender_mod 60000 300
+```
+See [Examples README](examples/README.md) for detailed usage.
 
 ## Features
 
