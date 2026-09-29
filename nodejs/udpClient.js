@@ -1,5 +1,8 @@
 const dgram = require('dgram');
 const { EventEmitter } = require('events');
+const { LOG_CONSOLE_BOLD_TEXT, INFO_CONSOLE_TEXT, NORMAL_CONSOLE_TEXT } = require('./colors');
+
+const LAST_CHUNK_NUMBER = 0xFFFF;  // Global variable for the last chunk number
 
 class CUDPClient extends EventEmitter {
     constructor() {
@@ -11,18 +14,21 @@ class CUDPClient extends EventEmitter {
         this.stoppedCalled = false;
         this.started = false;
         this.jsonID = '';
+        this.callback = null;
+        this.MAXLINE = 65507;
     }
 
-    init(targetIP, broadcastPort, host, listeningPort, chunkSize) {
+    init(targetIP, broadcastPort, host, listeningPort, chunkSize, onReceiveCallback) {
         this.chunkSize = chunkSize;
+        this.callback = onReceiveCallback;
         this.socket = dgram.createSocket('udp4');
         this.moduleAddress = { address: host, port: listeningPort };
         this.communicatorModuleAddress = { address: targetIP, port: broadcastPort };
 
         this.socket.bind(listeningPort, host, () => {
-            console.log(`UDP Listener at ${host}:${listeningPort}`);
-            console.log(`Expected Comm Server at ${targetIP}:${broadcastPort}`);
-            console.log(`UDP Max Packet Size ${chunkSize}`);
+            console.log(LOG_CONSOLE_BOLD_TEXT + "UDP Listener at " + INFO_CONSOLE_TEXT + host + ":" + listeningPort + NORMAL_CONSOLE_TEXT);
+            console.log(LOG_CONSOLE_BOLD_TEXT + "Expected Comm Server at " + INFO_CONSOLE_TEXT + targetIP + ":" + broadcastPort + NORMAL_CONSOLE_TEXT);
+            console.log(LOG_CONSOLE_BOLD_TEXT + "UDP Max Packet Size " + INFO_CONSOLE_TEXT + chunkSize + NORMAL_CONSOLE_TEXT);
         });
 
         this.socket.on('message', (msg, rinfo) => this.internalReceiverEntry(msg));
@@ -44,26 +50,68 @@ class CUDPClient extends EventEmitter {
     }
 
     internalReceiverEntry(received) {
-        let receivedChunks = [];
-        const chunkNumber = (received[1] << 8) | received[0];
-
-        if (chunkNumber === 0) {
-            receivedChunks = [];
+        /*
+        This function is responsible for receiving and processing data chunks from the socket.
+        It runs in a loop until the 'stoppedCalled' flag is set to True.
+        */
+        // List to store the received data chunks (instance-level, persists across calls)
+        if (!this._receivedChunks) {
+            this._receivedChunks = [];
         }
-        receivedChunks.push(received.slice(2));
 
-        if (chunkNumber === 0xFFFF) {
-            const concatenatedData = Buffer.concat(receivedChunks);
-            this.emit('data', concatenatedData);
-            receivedChunks = [];
+        // Check if any data was received
+        if (received.length > 0) {
+            if (received.length < 2) {
+                console.log(`ERROR: Received packet too small: ${received.length} bytes`);
+                return;
+            }
+
+            // Extract the chunk number from the received data
+            const chunkNumber = (received[1] << 8) | received[0];
+
+            // If the chunk number is 0, reset the receivedChunks list
+            if (chunkNumber === 0) {
+                this._receivedChunks = [];
+            }
+
+            // Append the received data (excluding the first two bytes) to the receivedChunks list
+            this._receivedChunks.push(received.slice(2));
+
+            // If the chunk number is LAST_CHUNK_NUMBER (0xFFFF), it indicates the last chunk
+            if (chunkNumber === LAST_CHUNK_NUMBER) {
+                // Concatenate all the received chunks into a single Buffer
+                let concatenatedData = Buffer.concat(this._receivedChunks);
+
+                // NOTICE: we don't know if this is a text or a text+binary message
+                // so a null terminator is appended; it should be stripped later if binary.
+                concatenatedData = Buffer.concat([concatenatedData, Buffer.from([0x00])]);
+
+                // Call the callback function, if it exists, with the concatenated data and its length
+                if (this.callback) {
+                    try {
+                        this.callback(concatenatedData, concatenatedData.length);
+                    } catch (e) {
+                        console.log(`ERROR: onReceive callback failed: ${e}`);
+                    }
+                }
+
+                // Reset the receivedChunks list for the next set of data
+                this._receivedChunks = [];
+            }
         }
     }
 
     setJsonId(jsonID) {
+        /*
+        This is JSON of TYPE_AndruavModule_ID that identifies the module.
+        */
         this.jsonID = jsonID;
     }
 
     async startSenderID() {
+        /*
+        Sending JSON with TYPE_AndruavModule_ID in a periodic form.
+        */
         while (!this.stoppedCalled) {
             if (this.jsonID) {
                 await this.sendMSG(Buffer.from(this.jsonID), this.jsonID.length);
@@ -73,35 +121,42 @@ class CUDPClient extends EventEmitter {
     }
 
     async sendMSG(msg, length) {
-        let remainingLength = length;
-        let offset = 0;
-        let chunkNumber = 0;
+        try {
+            let remainingLength = length;
+            let offset = 0;
+            let chunkNumber = 0;
 
-        while (remainingLength > 0) {
-            const chunkLength = Math.min(this.chunkSize, remainingLength);
-            remainingLength -= chunkLength;
+            while (remainingLength > 0) {
+                const chunkLength = Math.min(this.chunkSize, remainingLength);
+                remainingLength -= chunkLength;
 
-            const totalLength = chunkLength + 2;
-            const chunkMsg = Buffer.alloc(totalLength);
+                const totalLength = chunkLength + 2;
+                const chunkMsg = Buffer.alloc(totalLength);
 
-            if (remainingLength === 0) {
-                chunkMsg[0] = 0xFF;
-                chunkMsg[1] = 0xFF;
-            } else {
-                chunkMsg[0] = chunkNumber & 0xFF;
-                chunkMsg[1] = (chunkNumber >> 8) & 0xFF;
+                if (remainingLength === 0) {
+                    // Last packet is always equal to 255 (0xff) regardless if its actual number.
+                    chunkMsg[0] = 0xFF;
+                    chunkMsg[1] = 0xFF;
+                } else {
+                    chunkMsg[0] = chunkNumber & 0xFF;
+                    chunkMsg[1] = (chunkNumber >> 8) & 0xFF;
+                }
+
+                //print(f"chunkNumber:{chunk_number} :chunkLength :{chunk_length}")
+
+                msg.copy(chunkMsg, 2, offset, offset + chunkLength);
+                this.socket.send(chunkMsg, 0, chunkMsg.length, this.communicatorModuleAddress.port, this.communicatorModuleAddress.address);
+
+                if (remainingLength !== 0) {
+                    // Fast sending causes packet loss.
+                    await this.delay(10); // 10 milliseconds
+                }
+
+                offset += chunkLength;
+                chunkNumber += 1;
             }
-
-            console.log(`chunkNumber: ${chunkNumber} :chunkLength: ${chunkLength}`);
-            msg.copy(chunkMsg, 2, offset, offset + chunkLength);
-            this.socket.send(chunkMsg, 0, chunkMsg.length, this.communicatorModuleAddress.port, this.communicatorModuleAddress.address);
-
-            if (remainingLength !== 0) {
-                await this.delay(10); // 10 milliseconds
-            }
-
-            offset += chunkLength;
-            chunkNumber += 1;
+        } catch (e) {
+            console.log(`DEBUG: sendMSG EXIT\n${e}`);
         }
     }
 
@@ -111,12 +166,3 @@ class CUDPClient extends EventEmitter {
 }
 
 module.exports = CUDPClient;
-
-// // Example usage:
-// const client = new CUDPClient();
-// client.init('127.0.0.1', 12345, '0.0.0.0', 54321, 1024);
-// client.on('data', (data) => {
-//     console.log('Received data:', data);
-// });
-// client.start();
-// client.setJsonId('Your JSON ID here');

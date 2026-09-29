@@ -142,15 +142,15 @@ class AndruavMessageParserBase {
                 const fileContent = fs.readFileSync("template.json", 'utf8');
                 const fileContentJson = JSON.parse(fileContent);
                 if (this._facade) {
-                    this._facade.api_send_config_template(sender, module_key, fileContentJson, true);
+                    this._facade.API_sendConfigTemplate(sender, module_key, fileContentJson, true);
                 }
             } catch (error) {
                 console.log("\n\x1b[1;91mcannot read template.json\x1b[0m");
                 if (this._facade) {
-                    this._facade.send_error_message("", 0, ERROR_3DR, 
+                    this._facade.sendErrorMessage("", 0, ERROR_3DR, 
                         NOTIFICATION_TYPE_ERROR, "cannot read template.json");
                     const emptyFileContentJson = {};
-                    this._facade.api_send_config_template(sender, module_key, emptyFileContentJson, true);
+                    this._facade.API_sendConfigTemplate(sender, module_key, emptyFileContentJson, true);
                 }
                 return;
             }

@@ -13,25 +13,34 @@ This is a communication library that enables drone modules to exchange messages 
 ### Key Components
 
 - **CModule**: Singleton module manager for registration and message handling
-- **FacadeBase**: Simplified API for response generation
+- **CFacade_Base**: Simplified API for response generation and config templates
 - **Message Parser**: Handles JSON/binary message processing and command dispatch
+- **handle_config_action**: Standalone handler for CONFIG_ACTION messages (restart, apply config, fetch template)
 - **UDP Client**: Low-level network communication with automatic chunking
 
 ### Message Flow
 UDP Network → Module (`onReceive`) → Message Parser → Command Handler → Facade Base → Response generation
 
-Supports JSON and binary messages, inter-module routing, and automatic message chunking for large payloads.
+Supports JSON and binary messages, inter-module routing, and automatic message chunking for large payloads. Binary messages use a null-terminated JSON header followed by raw binary payload.
+
+### Protocol Updates (v10.0+)
+- Message types renamed with backward-compat aliases (e.g. `TrackingTarget` → `TrackingTarget_ACTION`, `TargetLost` → `TrackingTarget_STATUS`, `MAKE_SWARM` → `Make_Swarm`, `UdpProxy` → `UDPProxy`)
+- New message types: Camera (Zoom/Switch/Flash), SDR, GPIO, Sound (TTS/PlayFile), AI Recognition, Viewlink, LocalServer, CONFIG_ACTION/STATUS, MAVLINK_EVENTS, Ping_Unit, DE_Mission
+- New constants: `ANDRUAV_PROTOCOL_SENDER_COMM_SERVER`, `JSON_INTERMODULE_SOCKET_STATUS`, `MIN_JSON_HEADER_LEANGTH`, `WAITING_EVENT`/`FIRE_EVENT`/`LINKED_TO_STEP`
+- Hardware fields only sent in module ID when `set_hardware()` is called (avoids C++ json type_error)
+- `m_hardware_serial_type` is now an int (ENUM_HARDWARE_TYPE), not a string
+- Config actions: `CONFIG_ACTION_SHUT_DOWN_HW`/`CONFIG_ACTION_RESTART_HW` added
 
 ## Technical Constraints
 
 ### Language Standards
 - **C++**: C++17 standard, camelCase variables, PascalCase classes
-- **Python**: Snake_case, type hints in newer code, threading.Lock() for singleton safety  
+- **Python**: Snake_case, type hints in newer code, threading.Lock() for singleton safety
 - **Node.js**: camelCase, async/await support, EventEmitter pattern
 
 ### Architectural Patterns
 - Singleton Pattern for module management (`CModule`)
-- Facade Pattern for simplified API (`FacadeBase`)
+- Facade Pattern for simplified API (`CFacade_Base`)
 - Template Method for message parsing workflow
 - Observer Pattern for message callbacks
 
@@ -40,6 +49,7 @@ Supports JSON and binary messages, inter-module routing, and automatic message c
 - Default module listen ports: 61111-61234
 - UDP packet size: 8192 bytes (configurable)
 - Message filtering supported via `MESSAGE_FILTER` arrays
+- Target IP: 127.0.0.1 (local de_comm)
 
 ### Module Features
 - Module registration with unique IDs and versions
@@ -47,13 +57,26 @@ Supports JSON and binary messages, inter-module routing, and automatic message c
 - Telemetry sending/receiving capabilities
 - Message filtering by type
 - Cross-language compatibility through consistent UDP protocol
+- Config template support (remote config via GCS)
+
+## File Layout
+
+- `client/src/de_common/` — C++ library (git submodule, tracks DroneEngage/droneengage_common)
+- `client/test/` — C++ example/test programs
+- `python/` — Python library implementation
+- `nodejs/` — Node.js library implementation
+- `examples/` — Runnable examples in Python and Node.js
 
 ## Usage Examples
 
-See `/examples` folder for complete implementation samples:
-- Basic module communication with comprehensive help system
-- Binary data transmission (images)
-- MAVLink message handling
-- Adaptive rate control (sender/receiver)
-- Queue-based processing
-- Robust input handling and user interaction
+See `/examples` folder for complete runnable samples:
+- `de_module.py` — Python MAVLink listener
+- `mavlink_listener.js` — Node.js MAVLink listener
+- `image_sender.js` — Node.js binary image sender
+- `sender_adapter.js` / `receiver_adapter.js` — Node.js adaptive rate control pair
+
+See `/client/test/` for C++ examples:
+- `client.cpp` — Basic module communication
+- `mavlink_listener.cpp` — MAVLink message listener
+- `image_sender.cpp` — Binary data transmission (images)
+- `sender_adapter.cpp` / `receiver_adapter.cpp` — Adaptive rate control pair

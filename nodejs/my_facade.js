@@ -6,11 +6,8 @@
 const { CFacade_Base } = require('./de_facade_base');
 
 class CMyFacade extends CFacade_Base {
-    constructor(module) {
-        super();
-        if (module) {
-            this.setModule(module);
-        }
+    constructor(m_module) {
+        super(m_module);
     }
 
     // Add your custom methods here
